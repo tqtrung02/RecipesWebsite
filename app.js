@@ -4,6 +4,7 @@ const fileUpload = require('express-fileupload');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const flash = require('connect-flash');
+const passport = require('./server/config/passport');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -20,7 +21,21 @@ app.use(session({
     saveUninitialized: true,
     resave: true
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+app.use((req, res, next) => {
+    res.locals.user = req.user || null;
+    next();
+});
+
 app.use(flash());
+app.use((req, res, next) => {
+    res.locals.flash = req.flash();
+    next();
+});
 app.use(fileUpload());
 
 app.set('layout', './layouts/main');
