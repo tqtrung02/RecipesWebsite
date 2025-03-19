@@ -79,4 +79,31 @@ router.get('/logout', (req, res) => {
     });
 });
 
+// Check if the user is logged in before rendering the submit-recipe page
+router.get('/submit-recipe', (req, res) => {
+    if (!req.user) {  // Check if the user is not logged in
+        return res.redirect('/login');  // Redirect to login page if not logged in
+    }
+
+    // Render the recipe submission page if the user is logged in
+    res.render('submit-recipe', { title: 'Submit Recipe' });
+});
+
+// Handle the form submission for the recipe
+router.post('/submit-recipe', (req, res) => {
+    if (!req.user) {
+        return res.redirect('/login');  // Redirect to login if not logged in
+    }
+
+    const { name, description, ingredients, category, image } = req.body;
+    const userEmail = req.user.email;  // Get logged-in user's email
+
+    // Process the form (e.g., save to database)
+    // Make sure to handle the recipe save logic here
+
+    // For now, redirect to home page after submission
+    res.redirect('/');
+});
+
+
 module.exports = router;

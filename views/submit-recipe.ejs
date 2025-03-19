@@ -1,84 +1,80 @@
-<div class="px-4 py-5 my-5 text-center">
-    <h1 class="display-5 fw-bold">Đăng công thức của bạn</h1>
-    <img src="public\img\—Pngtree—recipe book vector_12159143.png" width="150" height="75" alt="">
-    <div class="col-lg-6 mx-auto">
-      <p class="lead">Chia sẻ những công thức nấu ăn tuyệt vời của bạn với mọi người. Điền vào biểu mẫu để bắt đầu ngay!</p>
-    </div>
-</div>
+<% if (!user) { %> <!-- Check if the user is not logged in -->
+  <div class="alert alert-warning text-center">
+      <h4>Vui lòng <a href="/login">Đăng nhập</a> để đăng công thức của bạn!</h4>
+  </div>
+<% } else { %> <!-- Show the recipe submission form if logged in -->
+  <div class="px-4 py-5 my-5 text-center">
+      <h1 class="display-5 fw-bold">Đăng công thức của bạn</h1>
+      <img src="/img/—Pngtree—recipe book vector_12159143.png" alt="Recipe Image" width="400" height="300">
+      <div class="col-lg-6 mx-auto">
+          <p class="lead">Chia sẻ những công thức nấu ăn tuyệt vời của bạn với mọi người. Điền vào biểu mẫu để bắt đầu ngay!</p>
+      </div>
+  </div>
 
-<div class="row justify-content-center">
-
-
-    <% if(infoSubmitObj != '') { %>
-        <div class="col-8 alert alert-success" role="alert">
-            <%= infoSubmitObj %>
-        </div>
-    <% } %>
-
-    <% if(infoErrorObj != '') { %>
-        <div class="col-8 alert alert-danger" role="alert">
-            <%= infoErrorObj[0].message %>
-        </div>
-    <% } %>
-
-    <div class="col-8">
-  
-      <form action="/submit-recipe" enctype="multipart/form-data" method="POST">
-      
-        <div class="row g-3">
-  
-          <div class="col-12">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control">
+  <div class="row justify-content-center">
+      <% if(infoSubmitObj != '') { %>
+          <div class="col-8 alert alert-success" role="alert">
+              <%= infoSubmitObj %>
           </div>
-  
-          <div class="col-12">
-            <label for="name" class="form-label">Tên công thức</label>
-            <input type="text" name="name" id="name" class="form-control" required>
+      <% } %>
+
+      <% if(infoErrorObj != '') { %>
+          <div class="col-8 alert alert-danger" role="alert">
+              <%= infoErrorObj[0].message %>
           </div>
-          
-          <div class="col-12">
-            <label for="description" class="form-label">Mô tả</label>
-            <textarea name="description" id="description" class="form-control" cols="30" rows="4"></textarea>
-          </div>
-  
-          <div class="col-12">
-            <label for="name" class="form-label">Nguyên liệu</label><br>
-            <small>Ví dụ: Muối</small>
-            <div class="ingredientList">
-              <div class="ingredientDiv mb-1">
-                <input type="text" name="ingredients" class="form-control">
+      <% } %>
+
+      <div class="col-8">
+          <form action="/submit-recipe" enctype="multipart/form-data" method="POST">
+              <div class="row g-3">
+                  <div class="col-12">
+                      <label for="name" class="form-label">Tên công thức</label>
+                      <input type="text" name="name" id="name" class="form-control" required>
+                  </div>
+                  
+                  <div class="col-12">
+                      <label for="description" class="form-label">Mô tả</label>
+                      <textarea name="description" id="description" class="form-control" cols="30" rows="4"></textarea>
+                  </div>
+
+                  <div class="col-12">
+                      <label for="name" class="form-label">Nguyên liệu</label><br>
+                      <small>Ví dụ: Muối</small>
+                      <div class="ingredientList">
+                          <div class="ingredientDiv mb-1">
+                              <input type="text" name="ingredients" class="form-control">
+                          </div>
+                      </div>
+                  </div>
+
+                  <div class="col-12">
+                      <button type="button" class="btn btn-outline-primary" id="addIngredientsBtn">+ Nguyên liệu</button>
+                  </div>
+
+                  <div class="col-12">
+                      <label for="category">Chọn danh mục</label>
+                      <select class="form-select form-control" name="category" aria-label="Category">
+                          <option selected>Chọn danh mục</option>
+                          <option value="Thái">Món Thái</option>
+                          <option value="Mỹ">Món Mỹ</option>
+                          <option value="Trung">Món Trung</option>
+                          <option value="Mê-hi-cô">Món Mê-hi-cô</option>
+                          <option value="Ấn Độ">Món Ấn Độ</option>
+                          <option value="Tây Ban Nha">Món Tây Ban Nha</option>
+                          <option value="Việt">Món Việt</option>
+                      </select>
+                  </div>
+
+                  <div class="col-12">
+                      <label for="image">Hình ảnh</label>
+                      <input type="file" class="form-control" name="image" accept="image/*">
+                  </div>
+
+                  <div class="col-12">
+                      <button type="submit" class="btn btn-primary">Đăng công thức</button>
+                  </div>
               </div>
-            </div>
-          </div>
-  
-          <div class="col-12">
-            <button type="button" class="btn btn-outline-primary" id="addIngredientsBtn">+ Nguyên liệu</button>
-          </div>
-  
-          <div class="col-12">
-            <label for="category">Chọn danh mục</label>
-            <select class="form-select form-control" name="category" aria-label="Category">
-              <option selected>Chọn danh mục</option>
-              <option value="Thái">Món Thái</option>
-              <option value="Mỹ">Món Mỹ</option>
-              <option value="Trung">Món Trung</option>
-              <option value="Mê-hi-cô">Món Mê-hi-cô</option>
-              <option value="Ấn Độ">Món Ấn Độ</option>
-              <option value="Tây Ban Nha">Món Tây Ban Nha</option>
-              <option value="Việt">Món Việt</option>
-            </select>
-          </div>
-  
-          <div class="col-12">
-            <label for="image">Hình ảnh</label>
-            <input type="file" class="form-control" name="image" accept="image/*">
-          </div>
-  
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">Đăng công thức</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div> 
+          </form>
+      </div>
+  </div>
+<% } %>  <!-- End check for user authentication -->
