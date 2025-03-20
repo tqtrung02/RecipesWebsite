@@ -209,9 +209,15 @@ router.get('/my-recipes', isAuthenticated, async (req, res) => {
     }
 });
 
+const isAdmin = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        return next();
+    }
+    res.redirect('/');  // Redirect to homepage if not admin
+};
 
 // Route to delete a recipe (GET)
-router.get('/recipe/delete/:id', isAuthenticated, recipeController.deleteRecipe);
+router.get('/recipe/delete/:id', isAuthenticated, isAdmin, recipeController.deleteRecipe);
 
 // Route to view a single recipe
 router.get('/recipe/:id', isAuthenticated, async (req, res) => {

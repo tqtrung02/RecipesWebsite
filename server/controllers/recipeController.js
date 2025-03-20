@@ -189,7 +189,7 @@ exports.deleteRecipe = async (req, res) => {
         const recipeId = req.params.id;
         const recipe = await Recipe.findById(recipeId);
 
-        if (recipe && recipe.email === req.user.email) {
+        if (req.user.role === 'admin' && recipe.email === req.user.email) {
             await Recipe.deleteOne({ _id: recipeId });
             req.flash('infoSubmit', 'Recipe has been deleted successfully!');
             res.redirect('/my-recipes');
@@ -208,7 +208,7 @@ exports.deleteRecipe = async (req, res) => {
 exports.editRecipe = async (req, res) => {
     try {
         const recipe = await Recipe.findById(req.params.id);
-        if (!recipe || recipe.email !== req.user.email) {
+        if (req.user.role !== 'admin' && recipe.email !== req.user.email) {
             req.flash('infoError', 'You are not authorized to edit this recipe.');
             return res.redirect('/my-recipes');
         }
