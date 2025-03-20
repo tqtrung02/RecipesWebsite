@@ -25,9 +25,9 @@ router.get('/signup', (req, res) => {
 
 router.post('/signup',
     // Validate input
-    body('email').isEmail().withMessage('Please enter a valid email address.'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long.'),
-    body('name').not().isEmpty().withMessage('Name is required.'),
+    body('email').isEmail().withMessage('Xin điền email hợp lệ.'),
+    body('password').isLength({ min: 6 }).withMessage('Mật khẩu phải dài 6 ký tựtự.'),
+    body('name').not().isEmpty().withMessage('Xin điền họ và têntên.'),
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -39,7 +39,7 @@ router.post('/signup',
         try {
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                req.flash('error', 'Email is already taken.');
+                req.flash('error', 'Email đã được sử dụng.');
                 return res.render('signup', { title: 'Sign Up' });
             }
 
@@ -103,6 +103,110 @@ router.post('/submit-recipe', (req, res) => {
 
     // For now, redirect to home page after submission
     res.redirect('/');
+});
+
+// Route to display user profile
+router.get('/profile', (req, res) => {
+    if (!req.user) {
+        return res.redirect('/login');  // If the user is not logged in, redirect to login
+    }
+    // Render profile page and pass the user object to the view
+    res.render('profile', { title: 'User Profile', user: req.user });
+});
+
+// Route to display the edit profile page
+router.get('/edit-profile', (req, res) => {
+    if (!req.user) {
+        return res.redirect('/login');  // If the user is not logged in, redirect to login
+    }
+    res.render('edit-profile', { title: 'Edit Profile', user: req.user });
+});
+
+// Handle profile update
+router.post('/edit-profile', async (req, res) => {
+    if (!req.user) {
+        return res.redirect('/login');
+    }
+
+    const { name, email } = req.body;
+
+    try {
+        // Update the user in the database
+        await User.findByIdAndUpdate(req.user._id, { name, email });
+
+        // After a successful update, redirect to the profile page with success message
+        return res.redirect('/profile?success=true');  // Redirect with success query parameter
+    } catch (err) {
+        return res.render('edit-profile', {
+            title: 'Edit Profile',
+            user: req.user,
+            error: 'Có lỗi xảy ra khi cập nhật thông tin.'
+        });
+    }
+});
+
+function isAuthenticated(req, res, next) {
+    if (!req.user) {
+        return res.redirect('/login');  // If not logged in, redirect to login
+    }
+    next();  // Otherwise, proceed to the next middleware or route handler
+}
+
+// Use this middleware for protected routes
+router.get('/profile', isAuthenticated, (req, res) => {
+    // Render profile page
+});
+
+// Route to show the Change Password page
+router.get('/change-password', (req, res) => {
+    if (!req.user) {
+        return res.redirect('/login');  // Redirect to login if the user is not logged in
+    }
+    res.render('change-password', { title: 'Change Password', user: req.user });
+});
+
+// Handle Password Change
+router.post('/change-password', async (req, res) => {
+    if (!req.user) {
+        return res.redirect('/login');  // Redirect to login if the user is not logged in
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Ensure new password and confirm password match
+    if (newPassword !== confirmPassword) {
+        return res.render('change-password', {
+            title: 'Change Password',
+            error: 'Mật khẩu mới và xác nhận mật khẩu không khớp.'  // Pass error message to the view
+        });
+    }
+
+    try {
+        // Check if the current password is correct
+        const user = await User.findById(req.user._id);
+        const isMatch = await user.comparePassword(currentPassword);
+
+        if (!isMatch) {
+            return res.render('change-password', {
+                title: 'Change Password',
+                error: 'Mật khẩu hiện tại không đúng.'  // Pass error message to the view
+            });
+        }
+
+        // Update the password
+        user.password = newPassword;
+        await user.save();
+
+        // Success message after password change
+        return res.render('change-password', {
+            title: 'Change Password',
+            success: 'Mật khẩu của bạn đã được cập nhật thành công!'
+        });
+
+        res.redirect('/profile');  // Redirect to profile after successful password change
+    } catch (err) {
+        res.status(500).send('Error changing password');
+    }
 });
 
 

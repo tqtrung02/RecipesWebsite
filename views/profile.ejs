@@ -1,0 +1,43 @@
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Thông tin người dùng</h2>
+
+                    <!-- Display Success Message if Passed -->
+                    <% if (typeof success !== 'undefined' && success === 'true') { %>
+                        <div class="alert alert-success">
+                            Cập nhật thông tin thành công!
+                        </div>
+                    <% } %>
+
+                    <!-- Display Name -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-bold">Họ và tên</label>
+                        <p id="name" class="form-control-plaintext fs-5"><%= user.name %></p>
+                    </div>
+
+                    <!-- Display Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-bold">Email</label>
+                        <p id="email" class="form-control-plaintext fs-5"><%= user.email %></p>
+                    </div>
+
+                    <!-- Display Password (Hidden) -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label fw-bold">Mật khẩu</label>
+                        <p id="password" class="form-control-plaintext fs-5">*******</p> <!-- Hidden password -->
+                    </div>
+
+                    <!-- Buttons for Profile Edit and Password Change -->
+                    <div class="text-center mt-4">
+                        <a href="/edit-profile" class="btn btn-primary btn-lg px-4 py-2 mb-2">Chỉnh sửa thông tin</a>
+                        <br>
+                        <a href="/change-password" class="btn btn-secondary btn-lg px-4 py-2">Đổi mật khẩu</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
