@@ -203,3 +203,66 @@ exports.deleteRecipe = async (req, res) => {
         res.redirect('/my-recipes');
     }
 };
+
+// GET /recipe/edit/:id - Render edit page with recipe data
+exports.editRecipe = async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.id);
+        if (!recipe || recipe.email !== req.user.email) {
+            req.flash('infoError', 'You are not authorized to edit this recipe.');
+            return res.redirect('/my-recipes');
+        }
+
+        res.render('edit-recipe', { title: 'Edit Recipe', recipe });
+    } catch (error) {
+        req.flash('infoError', 'An error occurred while fetching the recipe.');
+        res.redirect('/my-recipes');
+    }
+};
+
+// POST /recipe/edit/:id - Handle recipe update
+exports.updateRecipe = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const recipe = await Recipe.findById(recipeId);
+
+        if (recipe && recipe.email === req.user.email) {
+            console.log("Ingredients received:", req.body.ingredients);
+            let ingredients = req.body.ingredients || [];
+            if (!Array.isArray(ingredients)) {
+                ingredients = [ingredients];
+            }
+
+            ingredients = ingredients.filter(ingredient => ingredient.trim() !== '');
+            if (ingredients.length === 0) {
+                ingredients = recipe.ingredients;
+            }
+            recipe.name = req.body.name;
+            recipe.description = req.body.description;
+            recipe.ingredients = req.body.ingredients || recipe.ingredients;  // Ingredients as an array
+            recipe.category = req.body.category;
+
+            // Handle image upload
+            if (req.files && req.files.image) {
+                let imageUploadFile = req.files.image;
+                let newImageName = Date.now() + '-' + imageUploadFile.name;
+                let uploadPath = require('path').resolve('./') + '/public/uploads/' + newImageName;
+                imageUploadFile.mv(uploadPath, function(err) {
+                    if (err) return res.status(500).send(err);
+                });
+                recipe.image = newImageName;
+            }
+
+            await recipe.save();
+            req.flash('infoSubmit', 'Recipe has been updated successfully!');
+            res.redirect('/my-recipes');
+        } else {
+            req.flash('infoError', 'You are not authorized to update this recipe.');
+            res.redirect('/my-recipes');
+        }
+    } catch (error) {
+        console.log('Error updating recipe:', error);
+        req.flash('infoError', 'An error occurred while updating the recipe.');
+        res.redirect('/my-recipes');
+    }
+};

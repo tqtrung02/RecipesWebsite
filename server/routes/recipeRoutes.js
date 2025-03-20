@@ -234,5 +234,10 @@ router.get('/recipe/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// Route to render the edit recipe page
+router.get('/recipe/edit/:id', isAuthenticated, recipeController.editRecipe);
+
+// Route to handle the update of the recipe
+router.post('/recipe/edit/:id', isAuthenticated, recipeController.updateRecipe);
 
 module.exports = router;

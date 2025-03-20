@@ -8,3 +8,8 @@ addIngredientsBtn.addEventListener('click', function(){
     input.value = '';
     ingredientList.appendChild(newIngredients);
 })
+
+function removeIngredient(button) {
+    button.parentElement.remove();  // Remove the ingredient when 'Xóa' is clicked
+}
+
