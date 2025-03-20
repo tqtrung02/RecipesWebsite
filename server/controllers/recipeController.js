@@ -182,3 +182,24 @@ exports.submitRecipeOnPost = async (req, res) => {
         res.redirect('/submit-recipe');
     }
 };
+
+// Route to delete a recipe (GET)
+exports.deleteRecipe = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const recipe = await Recipe.findById(recipeId);
+
+        if (recipe && recipe.email === req.user.email) {
+            await Recipe.deleteOne({ _id: recipeId });
+            req.flash('infoSubmit', 'Recipe has been deleted successfully!');
+            res.redirect('/my-recipes');
+        } else {
+            req.flash('infoError', 'You are not authorized to delete this recipe.');
+            res.redirect('/my-recipes');
+        }
+    } catch (error) {
+        console.log('Error deleting recipe:', error);
+        req.flash('infoError', 'An error occurred while deleting the recipe.');
+        res.redirect('/my-recipes');
+    }
+};

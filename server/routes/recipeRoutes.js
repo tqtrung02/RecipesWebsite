@@ -209,4 +209,30 @@ router.get('/my-recipes', isAuthenticated, async (req, res) => {
     }
 });
 
+
+// Route to delete a recipe (GET)
+router.get('/recipe/delete/:id', isAuthenticated, recipeController.deleteRecipe);
+
+// Route to view a single recipe
+router.get('/recipe/:id', isAuthenticated, async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.id);
+        if (recipe) {
+            res.render('recipe', { 
+                title: recipe.name, 
+                recipe: recipe, 
+                user: req.user // Pass the logged-in user to the view
+            });
+        } else {
+            req.flash('infoError', 'Recipe not found.');
+            res.redirect('/explore-latest');
+        }
+    } catch (error) {
+        console.log('Error fetching recipe:', error);
+        req.flash('infoError', 'An error occurred while fetching the recipe.');
+        res.redirect('/explore-latest');
+    }
+});
+
+
 module.exports = router;
