@@ -3,7 +3,7 @@ const expressLayouts = require('express-ejs-layouts');
 const fileUpload = require('express-fileupload');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-const flash = require('connect-flash');
+const flash = require('express-flash');
 const passport = require('./server/config/passport');
 
 const app = express();
@@ -14,6 +14,7 @@ require('dotenv').config();
 app.use(express.urlencoded( { extended: true} ));
 app.use(express.static('public'));
 app.use(expressLayouts);
+app.use(express.json());
 
 app.use(cookieParser('RecipesWebsiteSecure'));
 app.use(session({
@@ -33,7 +34,10 @@ app.use((req, res, next) => {
 
 app.use(flash());
 app.use((req, res, next) => {
+    console.log('Flash messages:', req.flash());
     res.locals.flash = req.flash();
+    res.locals.infoSubmit = req.flash('infoSubmit');
+    res.locals.infoError = req.flash('infoError');
     next();
 });
 app.use(fileUpload());
