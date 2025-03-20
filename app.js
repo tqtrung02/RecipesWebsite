@@ -20,7 +20,8 @@ app.use(cookieParser('RecipesWebsiteSecure'));
 app.use(session({
     secret: 'RecipesWebsiteSecretSession',
     saveUninitialized: true,
-    resave: true
+    resave: true,
+    cookie: { secure: false }
 }));
 
 app.use(passport.initialize());

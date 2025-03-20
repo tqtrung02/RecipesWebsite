@@ -3,6 +3,7 @@ const router = express.Router();
 const recipeController = require('../controllers/recipeController');
 const passport = require('passport');
 const User = require('../models/User'); // Include the User model
+const Recipe = require('../models/Recipe');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 
@@ -26,7 +27,7 @@ router.get('/signup', (req, res) => {
 router.post('/signup',
     // Validate input
     body('email').isEmail().withMessage('Xin điền email hợp lệ.'),
-    body('password').isLength({ min: 6 }).withMessage('Mật khẩu phải dài 6 ký tựtự.'),
+    body('password').isLength({ min: 6 }).withMessage('Mật khẩu phải dài 6 ký tự.'),
     body('name').not().isEmpty().withMessage('Xin điền họ và têntên.'),
     async (req, res) => {
         const errors = validationResult(req);
@@ -131,10 +132,11 @@ router.post('/edit-profile', async (req, res) => {
 });
 
 function isAuthenticated(req, res, next) {
-    if (!req.user) {
-        return res.redirect('/login');  // If not logged in, redirect to login
+    if (req.isAuthenticated()) { // Check if user is authenticated (i.e., logged in)
+        return next(); // Proceed to the next route if the user is logged in
     }
-    next();  // Otherwise, proceed to the next middleware or route handler
+    req.flash('infoError', 'You need to be logged in to access your recipes.');
+    res.redirect('/login');  // Redirect to login page if not authenticated
 }
 
 // Use this middleware for protected routes
@@ -194,5 +196,17 @@ router.post('/change-password', async (req, res) => {
     }
 });
 
+// This route shows the recipes submitted by the logged-in user
+router.get('/my-recipes', isAuthenticated, async (req, res) => {
+    try {
+        const userEmail = req.user.email; // Assuming user is logged in
+        const userRecipes = await Recipe.find({ email: userEmail }); // Find recipes by the logged-in user's email
+        res.render('my-recipes', { title: 'My Recipes', recipes: userRecipes });
+    } catch (error) {
+        console.error('Error fetching recipes:', error);
+        req.flash('infoError', 'An error occurred while fetching your recipes.');
+        res.redirect('/profile');
+    }
+});
 
 module.exports = router;
