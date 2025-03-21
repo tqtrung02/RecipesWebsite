@@ -60,7 +60,33 @@
   </div>
 </section>
 
+<!-- Favorite Recipes Section -->
+<% if (user) { %>
+  <section class="pb-4 pt-4">
+    <div class="d-flex mb-2 align-items-center">
+      <h2 class="fw-bold" style="text-transform: uppercase; color: #ff4081;">Công thức yêu thích</h2>
+      <a href="/favorites" class="ms-auto text-decoration-none text-muted">Xem thêm</a>
+    </div>
+  
+    <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
+      <% if(user.favorites.length > 0) { %>
+          <% user.favorites.forEach(function(recipe) { %>
+              <a href="/recipe/<%= recipe._id %>" class="col text-center category__link">
+                  <div class="category__img category__img--large shadow rounded">
+                      <img src="/uploads/<%= recipe.image %>" alt="<%= recipe.name %>" loading="lazy">
+                  </div>
+                  <div class="pt-1 fw-bold"><%= recipe.name %></div>
+              </a>
+          <% }) %>
+      <% } else { %>
+          <p class="text-center">Bạn chưa có công thức yêu thích nào.</p>
+      <% } %>
+    </div>
+  </section>
+  <% } %>
+  
 
+<!-- Recipes by country-->
 <section class="pb-4 pt-4">
   <div class="d-flex mb-2 align-items-center">
     <h2>Công thức Việt</h2>

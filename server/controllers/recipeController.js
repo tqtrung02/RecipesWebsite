@@ -22,7 +22,11 @@ exports.homepage = async(req, res) => {
 
         const food = { latest, thai, american, chinese, vietnamese };
 
-        res.render('index', { title: 'FoodRecipes - Homepage', categories, food } );
+        const user = req.user ? await User.findById(req.user._id).populate({
+            path: 'favorites',
+        }) : null;
+
+        res.render('index', { title: 'FoodRecipes - Homepage', categories, food, user: user, recipes:[] } );
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }
@@ -176,7 +180,6 @@ exports.submitRecipeOnPost = async (req, res) => {
 
         // Set success message and redirect to submit recipe page
         req.flash('infoSubmit', 'Recipe has been submitted successfully!');
-        console.log('Flash messages set:', req.flash());
         res.redirect('/submit-recipe');
     } catch (error) {
         // Flash error message and redirect
@@ -332,3 +335,26 @@ exports.removeFavorite = async (req, res) => {
         res.redirect(`/recipe/${recipeId}`);
     }
 };
+
+// GET favorite recipes for the logged-in user
+exports.getFavoriteRecipes = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).populate({
+            path: 'favorites'
+        }); // Populate the favorite recipes
+        console.log('Populated User Favorite Recipes:', user.favorites);
+        
+        const favorites = user.favorites;
+
+        res.render('favorite-recipes', {
+            title: 'Favorite Recipes',
+            recipes: favorites,
+            user: req.user
+        });
+    } catch (error) {
+        console.error('Error fetching favorite recipes:', error);
+        req.flash('infoError', 'An error occurred while fetching your favorite recipes.');
+        res.redirect('/'); // Redirect to the home page in case of error
+    }
+};
+

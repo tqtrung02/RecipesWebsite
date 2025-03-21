@@ -269,4 +269,7 @@ router.get('/recipe/favorite/:id', isAuthenticated, recipeController.addFavorite
 // Remove from favorites
 router.get('/recipe/unfavorite/:id', isAuthenticated, recipeController.removeFavorite);
 
+// Route to display favorite recipes for the logged-in user
+router.get('/favorites', isAuthenticated, recipeController.getFavoriteRecipes);
+
 module.exports = router;
