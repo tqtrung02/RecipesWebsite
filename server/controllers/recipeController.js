@@ -3,6 +3,7 @@ const Category = require('../models/Category');
 const Recipe = require('../models/Recipe');
 const path = require('path');
 const mongoose = require("mongoose");
+const { isAuthenticated, isAdmin } = require('../middlewares/auth');
 
 /**
  * GET /
@@ -189,7 +190,7 @@ exports.deleteRecipe = async (req, res) => {
         const recipeId = req.params.id;
         const recipe = await Recipe.findById(recipeId);
 
-        if (req.user.role === 'admin' && recipe.email === req.user.email) {
+        if (req.user.role === 'admin' || recipe.email === req.user.email) {
             await Recipe.deleteOne({ _id: recipeId });
             req.flash('infoSubmit', 'Recipe has been deleted successfully!');
             res.redirect('/my-recipes');
@@ -226,7 +227,7 @@ exports.updateRecipe = async (req, res) => {
         const recipeId = req.params.id;
         const recipe = await Recipe.findById(recipeId);
 
-        if (recipe && recipe.email === req.user.email) {
+        if (recipe && (recipe.email === req.user.email || req.user.role === 'admin')) {
             console.log("Ingredients received:", req.body.ingredients);
             let ingredients = req.body.ingredients || [];
             if (!Array.isArray(ingredients)) {
@@ -266,3 +267,24 @@ exports.updateRecipe = async (req, res) => {
         res.redirect('/my-recipes');
     }
 };
+
+exports.getAllRecipes = async (page = 1, limit = 15) => {
+    try {
+        // Define the number of recipes per page
+        const skip = (page - 1) * limit;
+
+        // Fetch recipes with pagination
+        const recipes = await Recipe.find()
+            .skip(skip)    // Skip the previous pages
+            .limit(limit); // Limit to the number of recipes per page
+
+        // Get total recipe count to calculate total pages
+        const totalRecipes = await Recipe.countDocuments();
+        const totalPages = Math.ceil(totalRecipes / limit);
+
+        return { recipes, totalPages, currentPage: page };
+    } catch (error) {
+        throw new Error('Error fetching recipes: ' + error);
+    }
+};
+

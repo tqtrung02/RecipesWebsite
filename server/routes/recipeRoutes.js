@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const recipeController = require('../controllers/recipeController');
+const userController = require('../controllers/userController');
 const passport = require('passport');
 const User = require('../models/User'); // Include the User model
 const Recipe = require('../models/Recipe');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
+const { isAuthenticated, isAdmin } = require('../middlewares/auth');
 
 /**
  * App Routes 
@@ -131,13 +133,6 @@ router.post('/edit-profile', async (req, res) => {
     }
 });
 
-function isAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) { // Check if user is authenticated (i.e., logged in)
-        return next(); // Proceed to the next route if the user is logged in
-    }
-    req.flash('infoError', 'You need to be logged in to access your recipes.');
-    res.redirect('/login');  // Redirect to login page if not authenticated
-}
 
 // Use this middleware for protected routes
 router.get('/profile', isAuthenticated, (req, res) => {
@@ -209,12 +204,6 @@ router.get('/my-recipes', isAuthenticated, async (req, res) => {
     }
 });
 
-const isAdmin = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
-        return next();
-    }
-    res.redirect('/');  // Redirect to homepage if not admin
-};
 
 // Route to delete a recipe (GET)
 router.get('/recipe/delete/:id', isAuthenticated, isAdmin, recipeController.deleteRecipe);
@@ -245,5 +234,34 @@ router.get('/recipe/edit/:id', isAuthenticated, recipeController.editRecipe);
 
 // Route to handle the update of the recipe
 router.post('/recipe/edit/:id', isAuthenticated, recipeController.updateRecipe);
+
+// Admin Dashboard Route: Fetch all recipes with pagination
+router.get('/admin/dashboard', isAuthenticated, isAdmin, async (req, res) => {
+    const page = parseInt(req.query.page) || 1; // Get the current page from query parameter or default to 1
+    const limit = 15; // Number of recipes per page
+
+    try {
+        const { recipes, totalPages, currentPage } = await recipeController.getAllRecipes(page, limit);
+        const users = await userController.getAllUsers();
+        // Render the admin dashboard with recipes, totalPages, and currentPage
+        res.render('admin-dashboard', {
+            user: req.user,
+            recipes: recipes,
+            totalPages: totalPages,
+            currentPage: currentPage,
+            users: users
+        });
+    } catch (error) {
+        console.log('Error fetching recipes for admin dashboard:', error);
+        res.status(500).send('An error occurred while fetching the data.');
+    }
+});
+
+// Route for updating user information (name, email, role)
+router.post('/admin/user/edit-update/:id', isAuthenticated, isAdmin, userController.updateUser);
+
+// Route for deleting a user
+router.get('/admin/user/delete/:id', isAuthenticated, isAdmin, userController.deleteUser);
+
 
 module.exports = router;
