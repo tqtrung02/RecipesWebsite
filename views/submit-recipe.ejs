@@ -40,8 +40,11 @@
                       <label for="name" class="form-label">Nguyên liệu</label><br>
                       <small>Ví dụ: Muối</small>
                       <div class="ingredientList">
-                          <div class="ingredientDiv mb-1">
-                              <input type="text" name="ingredients" class="form-control">
+                          <div class="ingredientDiv mb-1 position-relative">
+                              <input type="text" name="ingredients" class="form-control ps-3 pe-5" required>
+                              <button type="button" class="btn btn-link text-danger position-absolute top-50 end-0 translate-middle-y" onclick="removeIngredient(this)">
+                                <i class="fas fa-times"></i>
+                              </button>
                           </div>
                       </div>
                   </div>

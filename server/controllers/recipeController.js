@@ -170,7 +170,7 @@ exports.submitRecipeOnPost = async (req, res) => {
         const newRecipe = new Recipe({
             name: req.body.name,
             description: req.body.description,
-            email: req.user.email, // Assuming the user is logged in
+            email: req.user.email,
             ingredients: ingredients,
             category: req.body.category,
             image: newImageName
@@ -180,7 +180,7 @@ exports.submitRecipeOnPost = async (req, res) => {
 
         // Set success message and redirect to submit recipe page
         req.flash('infoSubmit', 'Recipe has been submitted successfully!');
-        res.redirect('/submit-recipe');
+        res.redirect(`/recipe/${newRecipe._id}`);
     } catch (error) {
         // Flash error message and redirect
         req.flash('infoError', 'An error occurred while submitting the recipe.');
