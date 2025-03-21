@@ -17,7 +17,23 @@
   
       <div class="col-12 col-md-8">
         <div class="row">
-          <div class="col-12"><h1><%- recipe.name %></h1></div>
+          <div class="col-12"><h1><%- recipe.name %></h1>
+            <% if (user) { %>
+              <div class="position-relative">
+                <% if (user.favorites.includes(recipe._id.toString())) { %>
+                  <!-- Button to remove from favorites (Top-right corner) -->
+                  <a href="/recipe/unfavorite/<%= recipe._id %>" class="btn btn-outline-danger btn-lg position-absolute top-0 end-0 m-3" title="Remove from Favorites">
+                    <i class="bi bi-heart-fill fs-5"></i> Remove
+                  </a>
+                <% } else { %>
+                  <!-- Button to add to favorites (Top-right corner) -->
+                  <a href="/recipe/favorite/<%= recipe._id %>" class="btn btn-outline-danger btn-lg position-absolute top-0 end-0 m-3" title="Add to Favorites">
+                    <i class="bi bi-heart fs-5"></i> Add
+                  </a>
+                <% } %>
+              </div>
+            <% } %>
+          </div>
           <div class="col-12 mb-4"><i class="bi bi-tag"></i> <%- recipe.category %></div>
           <div class="col-12" style="white-space: pre-line;">
             <h4>Công thức</h4>

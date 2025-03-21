@@ -1,6 +1,7 @@
 require('../models/database');
 const Category = require('../models/Category');
 const Recipe = require('../models/Recipe');
+const User = require('../models/User');
 const path = require('path');
 const mongoose = require("mongoose");
 const { isAuthenticated, isAdmin } = require('../middlewares/auth');
@@ -288,3 +289,46 @@ exports.getAllRecipes = async (page = 1, limit = 15) => {
     }
 };
 
+// Add a recipe to the favorites list
+exports.addFavorite = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const userId = req.user._id;
+
+        // Check if the recipe is already in the user's favorites
+        const user = await User.findById(userId);
+        if (user.favorites.includes(recipeId)) {
+            req.flash('infoError', 'Recipe already added to favorites.');
+            return res.redirect(`/recipe/${recipeId}`);
+        }
+
+        // Add the recipe to the favorites array
+        user.favorites.push(recipeId);
+        await user.save();
+
+        req.flash('infoSubmit', 'Recipe added to favorites.');
+        res.redirect(`/recipe/${recipeId}`);
+    } catch (error) {
+        req.flash('infoError', 'An error occurred while adding to favorites.');
+        res.redirect(`/recipe/${recipeId}`);
+    }
+};
+
+// Remove a recipe from the favorites list
+exports.removeFavorite = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const userId = req.user._id;
+
+        // Remove the recipe from the favorites array
+        const user = await User.findById(userId);
+        user.favorites = user.favorites.filter(id => id.toString() !== recipeId);
+        await user.save();
+
+        req.flash('infoSubmit', 'Recipe removed from favorites.');
+        res.redirect(`/recipe/${recipeId}`);
+    } catch (error) {
+        req.flash('infoError', 'An error occurred while removing from favorites.');
+        res.redirect(`/recipe/${recipeId}`);
+    }
+};

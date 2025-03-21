@@ -263,5 +263,10 @@ router.post('/admin/user/edit-update/:id', isAuthenticated, isAdmin, userControl
 // Route for deleting a user
 router.get('/admin/user/delete/:id', isAuthenticated, isAdmin, userController.deleteUser);
 
+// Add to favorites
+router.get('/recipe/favorite/:id', isAuthenticated, recipeController.addFavorite);
+
+// Remove from favorites
+router.get('/recipe/unfavorite/:id', isAuthenticated, recipeController.removeFavorite);
 
 module.exports = router;
