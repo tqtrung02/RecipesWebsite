@@ -1,12 +1,12 @@
 <% if (user && user.role === 'admin') { %> <!-- Only show this content if the user is an admin -->
 
     <div class="container mt-5">
-        <h1 class="text-center">Trang quản lý</h1>
+        <h1 class="text-center mb-5 text-primary">Trang quản lý</h1>
         
         <!-- Section for Recipes -->
         <div class="row">
             <div class="col-12">
-                <h2 class="mb-4">Quản lý công thức</h2>
+                <h2 class="mb-4 text-success">Quản lý công thức</h2>
                 <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
                     <% if (recipes && recipes.length > 0) { %>
                         <% recipes.forEach(function(recipe, index){ %>
@@ -50,10 +50,10 @@
         <!-- Section for Users -->
         <div class="row mt-5">
             <div class="col-12">
-                <h2 class="mb-4">Quản lý người dùng</h2>
+                <h2 class="mb-4 text-info">Quản lý người dùng</h2>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th scope="col">Họ và tên</th>
                                 <th scope="col">Email</th>
