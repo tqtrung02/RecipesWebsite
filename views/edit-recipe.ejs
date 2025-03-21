@@ -43,10 +43,12 @@
                       <small>Ví dụ: Muối</small>
                       <div class="ingredientList">
                           <% recipe.ingredients.forEach(function(ingredient, index) { %>
-                              <div class="ingredientDiv mb-1">
-                                  <input type="text" name="ingredients" class="form-control" value="<%= ingredient %>" required>
-                                  <button type="button" class="btn btn-danger btn-sm mt-1" onclick="removeIngredient(this)">Xóa</button>
-                              </div>
+                            <div class="ingredientDiv mb-1 position-relative">
+                                <input type="text" name="ingredients" class="form-control ps-3 pe-5" value="<%= ingredient %>" required>
+                                <button type="button" class="btn btn-link text-danger position-absolute top-50 end-0 translate-middle-y" onclick="removeIngredient(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                           <% }); %>
                       </div>
                   </div>
@@ -58,7 +60,7 @@
                   <div class="col-12">
                       <label for="category">Chọn danh mục</label>
                       <select class="form-select form-control" name="category" aria-label="Category">
-                          <option selected>Món <%= recipe.category %></option>
+                          <option selected><%= recipe.category %></option>
                           <option value="Thái">Món Thái</option>
                           <option value="Mỹ">Món Mỹ</option>
                           <option value="Trung">Món Trung</option>

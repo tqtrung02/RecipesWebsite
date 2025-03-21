@@ -260,7 +260,7 @@ exports.updateRecipe = async (req, res) => {
 
             await recipe.save();
             req.flash('infoSubmit', 'Recipe has been updated successfully!');
-            res.redirect('/my-recipes');
+            res.redirect(`/recipe/${recipe._id}`);
         } else {
             req.flash('infoError', 'You are not authorized to update this recipe.');
             res.redirect('/my-recipes');

@@ -133,12 +133,6 @@ router.post('/edit-profile', async (req, res) => {
     }
 });
 
-
-// Use this middleware for protected routes
-router.get('/profile', isAuthenticated, (req, res) => {
-    // Render profile page
-});
-
 // Route to show the Change Password page
 router.get('/change-password', (req, res) => {
     if (!req.user) {
