@@ -1,7 +1,6 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
+const LocalStrategy = require('passport-local').Strategy; // Ensure passport-local is being required
+const User = require('../models/User');  // Import your User model
 
 // Local Strategy for sign-in
 passport.use(
@@ -27,43 +26,15 @@ passport.use(
     )
 );
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    scope: ['profile', 'email']
-  },
-  async (token, tokenSecret, profile, done) => {
-    try {
-      // Check if the user exists in the database
-      let user = await User.findOne({ googleId: profile.id });
-      if (!user) {
-        // If the user doesn't exist, create a new one
-        user = new User({
-          googleId: profile.id,
-          name: profile.displayName,
-          email: profile.emails[0].value, // Get the user's email from their Google profile
-          profilePicture: profile.photos[0].value // Get profile picture (if available)
-        });
-        await user.save();
-      }
-      return done(null, user);
-    } catch (error) {
-      console.log(error);
-      return done(error, null);
-    }
-  }
-));
-
 // Serialize user to store user information in session
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, user.id);  // Store the user ID in the session
 });
 
 // Deserialize user from session
 passport.deserializeUser(async (id, done) => {
-    const user = await User.findById(id);
-    done(null, user);
+    const user = await User.findById(id);  // Fetch the user from the database using the stored ID
+    done(null, user);  // Store user object in session
 });
 
-module.exports = passport;
+module.exports = passport;  // Export passport for use in app.js

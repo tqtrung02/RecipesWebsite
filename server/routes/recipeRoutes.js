@@ -3,6 +3,9 @@ const router = express.Router();
 const recipeController = require('../controllers/recipeController');
 const userController = require('../controllers/userController');
 const passport = require('passport');
+const User = require('../models/User'); // Include the User model
+const Recipe = require('../models/Recipe');
+const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { isAuthenticated, isAdmin } = require('../middlewares/auth');
 
@@ -27,13 +30,8 @@ router.post('/login', passport.authenticate('local', {
     failureFlash: true
 }));
 
-// Route to initiate Google login
-router.get('/auth/google', userController.googleLogin);
-
-// Google callback route after user logs in
-router.get('/auth/google/callback', userController.googleCallback);
-
 router.get('/logout', userController.logout);
+
 
 router.get('/profile', isAuthenticated, userController.profilePage);
 router.get('/edit-profile', isAuthenticated, userController.editProfilePage);

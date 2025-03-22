@@ -153,14 +153,3 @@ exports.deleteUser = async (req, res) => {
         res.redirect('/admin/dashboard');
     }
 };
-
-// Google login route
-exports.googleLogin = passport.authenticate('google', {
-    scope: ['profile', 'email']  // Request access to profile and email
-});
-
-// Google callback route after the user logs in
-exports.googleCallback = passport.authenticate('google', {
-    failureRedirect: '/login',  // Redirect to login page on failure
-    successRedirect: '/'  // Redirect to homepage or dashboard after successful login
-});
