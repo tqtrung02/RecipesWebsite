@@ -77,14 +77,23 @@ exports.exploreCategoriesById = async(req, res) => {
 */
 exports.exploreRecipe = async(req, res) => {
     try {
-        let recipeId = req.params.id;
-        const recipe = await Recipe.findById(recipeId)
-        .populate('comments.user', 'name');
-        res.render('recipe', { title: 'FoodRecipes - Recipe', recipe: recipe, user: req.user } );
+        const recipe = await Recipe.findById(req.params.id)
+            .populate('comments.user', 'name');
+        if (recipe) {
+            res.render('recipe', { 
+                title: recipe.name, 
+                recipe: recipe, 
+                user: req.user // Pass the logged-in user to the view
+            });
+        } else {
+            req.flash('infoError', 'Recipe not found.');
+            res.redirect('/explore-latest');
+        }
     } catch (error) {
-        res.status(500).send({message: error.message || "Error Occured" });
+        console.log('Error fetching recipe:', error);
+        req.flash('infoError', 'An error occurred while fetching the recipe.');
+        res.redirect('/explore-latest');
     }
-    
 }
 
 /**
@@ -138,6 +147,10 @@ exports.exploreRandom = async(req, res) => {
 exports.submitRecipe = async(req, res) => {
     const infoErrorObj = req.flash('infoErrors');
     const infoSubmitObj = req.flash('infoSubmit');
+    if (!req.user) {  // Check if the user is not logged in
+        req.flash('infoError', 'You need to log in to submit a recipe.');
+        return res.redirect('/login');  // Redirect to login page if not logged in
+    }
     res.render('submit-recipe', { title: 'FoodRecipes - Submit Recipe', infoErrorObj, infoSubmitObj } );
 }
 
@@ -419,5 +432,18 @@ exports.deleteComment = async (req, res) => {
         console.error('Error deleting comment:', error);
         req.flash('infoError', 'Có lỗi xảy ra khi xóa bình luận.');
         res.redirect(`/recipe/${req.params.recipeId}`);
+    }
+};
+
+// Fetch and render the recipes submitted by the logged-in user
+exports.myRecipes = async (req, res) => {
+    try {
+        const userEmail = req.user.email; // Get the email of the logged-in user
+        const userRecipes = await Recipe.find({ email: userEmail }); // Find recipes by the user's email
+        res.render('my-recipes', { title: 'My Recipes', recipes: userRecipes });
+    } catch (error) {
+        console.error('Error fetching recipes:', error);
+        req.flash('infoError', 'An error occurred while fetching your recipes.');
+        res.redirect('/profile');
     }
 };
