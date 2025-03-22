@@ -27,8 +27,13 @@ router.post('/login', passport.authenticate('local', {
     failureFlash: true
 }));
 
-router.get('/logout', userController.logout);
+// Route to initiate Google login
+router.get('/auth/google', userController.googleLogin);
 
+// Google callback route after user logs in
+router.get('/auth/google/callback', userController.googleCallback);
+
+router.get('/logout', userController.logout);
 
 router.get('/profile', isAuthenticated, userController.profilePage);
 router.get('/edit-profile', isAuthenticated, userController.editProfilePage);

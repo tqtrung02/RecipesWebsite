@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 const fileUpload = require('express-fileupload');
@@ -9,8 +11,6 @@ const passport = require('./server/config/passport');
 const app = express();
 const port = process.env.PORT || 4000;
 
-require('dotenv').config();
-
 app.use(express.urlencoded( { extended: true} ));
 app.use(express.static('public'));
 app.use(expressLayouts);
@@ -18,7 +18,7 @@ app.use(express.json());
 
 app.use(cookieParser('RecipesWebsiteSecure'));
 app.use(session({
-    secret: 'RecipesWebsiteSecretSession',
+    secret: process.env.SESSIONSECRET,
     saveUninitialized: true,
     resave: true,
     cookie: { secure: false }
