@@ -1,6 +1,7 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy; // Ensure passport-local is being required
-const User = require('../models/User');  // Import your User model
+const LocalStrategy = require('passport-local').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const User = require('../models/User');
 
 // Local Strategy for sign-in
 passport.use(
@@ -25,6 +26,32 @@ passport.use(
         }
     )
 );
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL, 
+    scope: ['profile', 'email']
+  },
+  async (token, tokenSecret, profile, done) => {
+    try {
+      let user = await User.findOne({ googleId: profile.id });
+      if (!user) {
+        user = new User({
+          googleId: profile.id,
+          name: profile.displayName,
+          email: profile.emails[0].value,
+          profilePicture: profile.photos[0].value
+        });
+        await user.save();
+      }
+      return done(null, user);
+    } catch (error) {
+      console.log(error);
+      return done(error, null);
+    }
+  }
+));
 
 // Serialize user to store user information in session
 passport.serializeUser((user, done) => {
