@@ -266,4 +266,10 @@ router.get('/recipe/unfavorite/:id', isAuthenticated, recipeController.removeFav
 // Route to display favorite recipes for the logged-in user
 router.get('/favorites', isAuthenticated, recipeController.getFavoriteRecipes);
 
+// Add comment to recipe
+router.post('/recipe/:id/comment', isAuthenticated, recipeController.addComment);
+
+// Delete comment for admin
+router.get('/recipe/:recipeId/comment/delete/:commentId', isAuthenticated, isAdmin, recipeController.deleteComment);
+
 module.exports = router;

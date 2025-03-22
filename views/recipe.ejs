@@ -66,6 +66,53 @@
         </a>
       </div>      
   <% } %>
+    <!-- Recipe Comments Section -->
+    <div class="row pt-4">
+      <div class="col-12">
+          <h4 class="text-primary mb-3">Bình luận</h4>
+
+          <% if (recipe.comments.length > 0) { %>
+              <div class="comments-list">
+                  <% recipe.comments.forEach(function(comment) { %>
+                    <div class="comment-item mb-4 p-3 rounded shadow-sm">
+                      <div class="d-flex justify-content-between align-items-start">
+                          <div>
+                              <strong class="fs-5"><%= comment.user.name %></strong>
+                              <span class="text-muted small"><%= comment.createdAt.toLocaleString() %></span>
+                          </div>  
+
+                          <% if (user && user.role === 'admin') { %>
+                              <a href="/recipe/<%= recipe._id %>/comment/delete/<%= comment._id %>" class="btn btn-danger btn-sm ms-3 mt-2" onclick="return confirm('Bạn có chắc chắn muốn xóa bình luận này?')">Xóa</a>
+                          <% } %>
+                      </div>
+                      <p class="mt-2"><%= comment.commentText %></p>
+                    </div>
+                  <% }); %>
+              </div>
+          <% } else { %>
+              <p class="text-muted">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+          <% } %>
+      </div>
+    </div>
+
+    <!-- Add Comment Form -->
+    <% if (user) { %>
+      <div class="row pt-3">
+          <div class="col-12">
+              <h5 class="text-primary">Thêm bình luận</h5>
+              <form action="/recipe/<%= recipe._id %>/comment" method="POST">
+                  <div class="form-group">
+                      <textarea name="commentText" class="form-control" placeholder="Thêm bình luận..." rows="4" required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary mt-2">Đăng bình luận</button>
+              </form>
+          </div>
+      </div>
+    <% } else { %>
+      <p class="mt-2 text-muted"><a href="/login">Đăng nhập</a> để thêm bình luận.</p>
+    <% } %>
+
+
   <% } else { %>
     <p>No item found.</p>
   <% } %>

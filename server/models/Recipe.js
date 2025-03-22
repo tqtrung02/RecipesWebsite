@@ -26,6 +26,20 @@ const recipeSchema = new mongoose.Schema({
         type: String,
         required: 'This field is required.'
     },
+    comments: [
+        {
+            user: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            commentText: String,
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ]
+
 });
 
 recipeSchema.index({ name: 'text', description: 'text' });

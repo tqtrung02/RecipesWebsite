@@ -78,8 +78,9 @@ exports.exploreCategoriesById = async(req, res) => {
 exports.exploreRecipe = async(req, res) => {
     try {
         let recipeId = req.params.id;
-        const recipe = await Recipe.findById(recipeId);
-        res.render('recipe', { title: 'FoodRecipes - Recipe', recipe } );
+        const recipe = await Recipe.findById(recipeId)
+        .populate('comments.user', 'name');
+        res.render('recipe', { title: 'FoodRecipes - Recipe', recipe: recipe, user: req.user } );
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }
@@ -358,3 +359,65 @@ exports.getFavoriteRecipes = async (req, res) => {
     }
 };
 
+exports.addComment = async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+        const { commentText } = req.body;
+
+        // Find the recipe by ID
+        const recipe = await Recipe.findById(recipeId);
+
+        if (!recipe) {
+            req.flash('infoError', 'Recipe not found.');
+            return res.redirect(`/recipe/${recipeId}`);
+        }
+
+        // Add the new comment
+        recipe.comments.push({
+            user: req.user._id, // Logged-in user's ID
+            commentText: commentText
+        });
+
+        // Save the updated recipe
+        await recipe.save();
+
+        req.flash('infoSubmit', 'Comment added successfully!');
+        res.redirect(`/recipe/${recipeId}`); // Redirect back to the recipe detail page
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        req.flash('infoError', 'An error occurred while adding your comment.');
+        res.redirect(`/recipe/${req.params.id}`);
+    }
+};
+
+exports.deleteComment = async (req, res) => {
+    try {
+        const recipeId = req.params.recipeId;
+        const commentId = req.params.commentId;
+
+        // Find the recipe by ID
+        const recipe = await Recipe.findById(recipeId);
+        if (!recipe) {
+            req.flash('infoError', 'Recipe not found.');
+            return res.redirect(`/recipe/${recipeId}`);
+        }
+
+        // Remove the comment with the specified commentId
+        const commentIndex = recipe.comments.findIndex(comment => comment._id.toString() === commentId);
+        if (commentIndex === -1) {
+            req.flash('infoError', 'Comment not found.');
+            return res.redirect(`/recipe/${recipeId}`);
+        }
+
+        // Remove the comment from the comments array
+        recipe.comments.splice(commentIndex, 1);
+        await recipe.save();
+
+        req.flash('infoSubmit', 'Bình luận đã được xóa thành công!');
+        res.redirect(`/recipe/${recipeId}`); // Redirect back to the recipe detail page
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        req.flash('infoError', 'Có lỗi xảy ra khi xóa bình luận.');
+        res.redirect(`/recipe/${req.params.recipeId}`);
+    }
+};
