@@ -3,9 +3,6 @@ const router = express.Router();
 const recipeController = require('../controllers/recipeController');
 const userController = require('../controllers/userController');
 const passport = require('passport');
-const User = require('../models/User'); // Include the User model
-const Recipe = require('../models/Recipe');
-const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { isAuthenticated, isAdmin } = require('../middlewares/auth');
 
