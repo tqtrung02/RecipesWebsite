@@ -92,4 +92,15 @@ router.get('/reset-password/:token', userController.resetPassword);
 // Route to handle the password update
 router.post('/reset-password/:token', userController.updatePassword);
 
+router.get('/test-users', async (req, res) => {
+    try {
+        const users = await userController.getAllUsers();
+        console.log('Users fetched in test route:', users);
+        res.send(users);  // Send back the users as a response for testing
+    } catch (error) {
+        console.error('Error fetching users in test route:', error);
+        res.send('Error fetching users');
+    }
+});
+
 module.exports = router;

@@ -3,6 +3,9 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
+const recipeController = require('./recipeController');
+const userController = require('../controllers/userController');
+
 
 // Render the signup page
 exports.signupPage = (req, res) => {
@@ -97,33 +100,41 @@ exports.changePassword = async (req, res) => {
     }
 };
 
+// Get all users for admin dashboard
+exports.getAllUsers = async () => {
+    try {
+        const users = await User.find({});  // Fetch users from database
+        return users;
+    } catch (error) {
+        console.error('Error fetching users:', error);  // More detailed error log
+        throw new Error(`Error fetching users: ${error.message}`);
+    }
+};
+
+
 // Admin Dashboard
 exports.adminDashboard = async (req, res) => {
+    console.log('Accessed Admin Dashboard route');
+
     const page = parseInt(req.query.page) || 1;
     const limit = 15;
 
     try {
         const { recipes, totalPages, currentPage } = await recipeController.getAllRecipes(page, limit);
-        const users = await this.getAllUsers();
-        res.render('admin-dashboard', {
+        // Ensure getAllUsers is properly called
+        const users = await userController.getAllUsers();  // Fetch users from the database
+
+        res.render('admin-dashboard', {  // Render the dashboard with the fetched data
             user: req.user,
-            recipes,
-            totalPages,
-            currentPage,
-            users
+            recipes: recipes,
+            totalPages: totalPages,
+            currentPage: currentPage,
+            users: users  // Ensure users are passed to the view
         });
     } catch (error) {
+        console.error('Error fetching data for admin dashboard:', error);  // Log error
         req.flash('infoError', 'Error fetching data for admin dashboard.');
         res.redirect('/');
-    }
-};
-
-// Get all users for admin dashboard
-exports.getAllUsers = async () => {
-    try {
-        return await User.find();
-    } catch (error) {
-        throw new Error('Error fetching users: ' + error);
     }
 };
 

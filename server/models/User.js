@@ -18,8 +18,16 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: function() {
-            return !this.googleId;
-    }
+            return !this.googleId; // If googleId exists, password is not required
+        }
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    profilePicture: {
+        type: String
     },
     role: {
         type: String,
@@ -39,7 +47,7 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving to the database
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
+    if (!this.isModified('password') || this.googleId) return next();
 
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -51,4 +59,6 @@ userSchema.methods.comparePassword = function(password) {
     return bcrypt.compare(password, this.password);
 };
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
