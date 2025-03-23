@@ -151,7 +151,8 @@ exports.submitRecipe = async(req, res) => {
         req.flash('infoError', 'You need to log in to submit a recipe.');
         return res.redirect('/login');  // Redirect to login page if not logged in
     }
-    res.render('submit-recipe', { title: 'FoodRecipes - Submit Recipe', infoErrorObj, infoSubmitObj } );
+    const categories = await Category.find({});
+    res.render('submit-recipe', { title: 'FoodRecipes - Submit Recipe', infoErrorObj, infoSubmitObj, categories: categories } );
 }
 
 /**
@@ -227,12 +228,13 @@ exports.deleteRecipe = async (req, res) => {
 exports.editRecipe = async (req, res) => {
     try {
         const recipe = await Recipe.findById(req.params.id);
+        const categories = await Category.find({});
         if (req.user.role !== 'admin' && recipe.email !== req.user.email) {
             req.flash('infoError', 'You are not authorized to edit this recipe.');
             return res.redirect('/my-recipes');
         }
 
-        res.render('edit-recipe', { title: 'Edit Recipe', recipe });
+        res.render('edit-recipe', { title: 'Edit Recipe', recipe ,categories });
     } catch (error) {
         req.flash('infoError', 'An error occurred while fetching the recipe.');
         res.redirect('/my-recipes');

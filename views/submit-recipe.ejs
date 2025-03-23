@@ -56,14 +56,9 @@
                   <div class="col-12">
                       <label for="category">Chọn danh mục</label>
                       <select class="form-select form-control" name="category" aria-label="Category">
-                          <option selected>Chọn danh mục</option>
-                          <option value="Thái">Món Thái</option>
-                          <option value="Mỹ">Món Mỹ</option>
-                          <option value="Trung">Món Trung</option>
-                          <option value="Mê-hi-cô">Món Mê-hi-cô</option>
-                          <option value="Ấn Độ">Món Ấn Độ</option>
-                          <option value="Tây Ban Nha">Món Tây Ban Nha</option>
-                          <option value="Việt">Món Việt</option>
+                        <% categories.forEach(function(category) { %>
+                            <option value="<%= category.name %>"><%= category.name %></option>
+                        <% }); %>
                       </select>
                   </div>
 
