@@ -80,4 +80,16 @@ router.post('/recipe/:id/comment', isAuthenticated, recipeController.addComment)
 // Delete comment for admin
 router.get('/recipe/:recipeId/comment/delete/:commentId', isAuthenticated, isAdmin, recipeController.deleteComment);
 
+// Route to render the Forgot Password form
+router.get('/forgot-password', userController.renderForgotPasswordPage);
+
+// Route for Forgot Password
+router.post('/forgot-password', userController.forgotPassword);
+
+// Route to render the Reset Password page
+router.get('/reset-password/:token', userController.resetPassword);
+
+// Route to handle the password update
+router.post('/reset-password/:token', userController.updatePassword);
+
 module.exports = router;

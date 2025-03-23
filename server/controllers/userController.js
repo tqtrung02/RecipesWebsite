@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 
@@ -164,3 +166,100 @@ exports.googleCallback = passport.authenticate('google', {
     failureRedirect: '/login',  // Redirect to login page on failure
     successRedirect: '/'  // Redirect to homepage or dashboard after successful login
 });
+
+// Function to render the Forgot Password page
+exports.renderForgotPasswordPage = (req, res) => {
+    res.render('forgot-password');  // Render the forgot-password.ejs file
+};
+
+// Forgot password: Send reset link to user's email
+exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            req.flash('infoError', 'No user found with that email address.');
+            return res.redirect('/forgot-password');
+        }
+
+        // Generate password reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // Token expires in 1 hour
+        
+        user.resetToken = resetToken;
+        user.resetTokenExpiry = resetTokenExpiry;
+        await user.save();
+
+        // Send email with reset token
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Password Reset Request',
+            text: `To reset your password, please click the following link: \n\n http://localhost:4000/reset-password/${resetToken}`
+        };
+
+        await transporter.sendMail(mailOptions);
+        req.flash('infoSubmit', 'Password reset email sent.');
+        res.redirect('/login');
+    } catch (error) {
+        console.log(error);
+        req.flash('infoError', 'An error occurred while processing your request.');
+        res.redirect('/forgot-password');
+    }
+};
+
+// Reset password page
+exports.resetPassword = async (req, res) => {
+    const { token } = req.params;
+    try {
+        const user = await User.findOne({ resetToken: token, resetTokenExpiry: { $gt: Date.now() } });
+
+        if (!user) {
+            req.flash('infoError', 'Invalid or expired token.');
+            return res.redirect('/login');
+        }
+
+        res.render('reset-password', { title: 'Reset Password', token });
+    } catch (error) {
+        console.log(error);
+        req.flash('infoError', 'An error occurred while fetching the user.');
+        res.redirect('/login');
+    }
+};
+
+// Handle the password update after the user submits the reset form
+exports.updatePassword = async (req, res) => {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    try {
+        const user = await User.findOne({ resetToken: token, resetTokenExpiry: { $gt: Date.now() } });
+
+        if (!user) {
+            req.flash('infoError', 'Invalid or expired token.');
+            return res.redirect('/login');
+        }
+
+        user.password = password;
+        user.resetToken = undefined;
+        user.resetTokenExpiry = undefined;
+        await user.save();
+
+        req.flash('infoSubmit', 'Your password has been updated successfully!');
+        res.redirect('/login');
+    } catch (error) {
+        console.log(error);
+        req.flash('infoError', 'An error occurred while updating your password.');
+        res.redirect('/login');
+    }
+};

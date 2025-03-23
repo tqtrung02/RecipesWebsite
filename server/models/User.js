@@ -26,7 +26,15 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }]
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Recipe' }],
+    resetToken: {
+        type: String,
+        default: null,
+    },
+    resetTokenExpiry: {
+        type: Date,
+        default: null,
+    }
 });
 
 // Hash password before saving to the database
