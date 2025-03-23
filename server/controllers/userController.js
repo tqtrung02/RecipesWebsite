@@ -114,8 +114,6 @@ exports.getAllUsers = async () => {
 
 // Admin Dashboard
 exports.adminDashboard = async (req, res) => {
-    console.log('Accessed Admin Dashboard route');
-
     const page = parseInt(req.query.page) || 1;
     const limit = 15;
 
