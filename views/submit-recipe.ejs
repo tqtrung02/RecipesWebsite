@@ -32,8 +32,9 @@
                   </div>
                   
                   <div class="col-12">
-                      <label for="description" class="form-label">Mô tả</label>
-                      <textarea name="description" id="description" class="form-control" cols="30" rows="4"></textarea>
+                      <label for="description" class="form-label">Cách chế biến</label>
+                      <textarea name="description" id="description" class="form-control" cols="30" rows="4"
+                        style="overflow:hidden; resize:none;" oninput="autoResize(this)"></textarea>
                   </div>
 
                   <div class="col-12">
@@ -75,6 +76,12 @@
       </div>
   </div>
 <% } %>  <!-- End check for user authentication -->
-
+<script>
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+</script>
+  
 </body>
 </html>
