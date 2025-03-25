@@ -173,52 +173,6 @@ exports.submitRecipeOnPost = async (req, res) => {
         const image = req.files.image;
         const filename = Date.now() + '-' + image.name;
 
-        // Convert buffer to readable stream
-        const readStream = Readable.from(image.data);
-        const uploadStream = gridfsBucket.openUploadStream(filename, {
-            contentType: image.mimetype
-        });
-
-        readStream.pipe(uploadStream)
-            .on('error', (err) => {
-                console.error('Upload Error:', err);
-                req.flash('infoError', 'Image upload failed.');
-                return res.redirect('/submit-recipe');
-            })
-            .on('finish', async () => {
-                const ingredients = Array.isArray(req.body.ingredients)
-                    ? req.body.ingredients
-                    : [req.body.ingredients];
-
-                const newRecipe = new Recipe({
-                    name: req.body.name,
-                    description: req.body.description,
-                    email: req.user.email,
-                    ingredients,
-                    category: req.body.category,
-                    image: filename
-                });
-
-                await newRecipe.save();
-                req.flash('infoSubmit', 'Recipe submitted successfully!');
-                res.redirect(`/recipe/${newRecipe._id}`);
-            });
-
-    } catch (error) {
-        console.error('Submit Error:', error);
-        req.flash('infoError', 'An error occurred while submitting the recipe.');
-        res.redirect('/submit-recipe');
-    }
-};exports.submitRecipeOnPost = async (req, res) => {
-    try {
-        if (!req.files || !req.files.image) {
-            req.flash('infoError', 'Please upload an image.');
-            return res.redirect('/submit-recipe');
-        }
-
-        const image = req.files.image;
-        const filename = Date.now() + '-' + image.name;
-
         const readStream = Readable.from(image.data);
         const uploadStream = getGridFSBucket().openUploadStream(filename, {
             contentType: image.mimetype
