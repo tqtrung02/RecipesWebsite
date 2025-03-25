@@ -5,6 +5,9 @@ const User = require('../models/User');
 const path = require('path');
 const mongoose = require("mongoose");
 const { isAuthenticated, isAdmin } = require('../middlewares/auth');
+const multer = require('multer');
+const { Readable, getGridFSBucket, getGFS } = require('../models/database');
+
 
 /**
  * GET /
@@ -162,46 +165,98 @@ exports.submitRecipe = async(req, res) => {
 
 exports.submitRecipeOnPost = async (req, res) => {
     try {
-        // Check if files are uploaded
-        if (!req.files || Object.keys(req.files).length === 0) {
+        if (!req.files || !req.files.image) {
             req.flash('infoError', 'Please upload an image.');
             return res.redirect('/submit-recipe');
         }
 
-        let imageUploadFile = req.files.image;
-        let newImageName = Date.now() + '-' + imageUploadFile.name;
-        let uploadPath = require('path').resolve('./') + '/public/uploads/' + newImageName;
+        const image = req.files.image;
+        const filename = Date.now() + '-' + image.name;
 
-        // Move the uploaded image to the desired directory
-        imageUploadFile.mv(uploadPath, function(err) {
-            if (err) {
-                req.flash('infoError', 'Error occurred while uploading the image.');
+        // Convert buffer to readable stream
+        const readStream = Readable.from(image.data);
+        const uploadStream = gridfsBucket.openUploadStream(filename, {
+            contentType: image.mimetype
+        });
+
+        readStream.pipe(uploadStream)
+            .on('error', (err) => {
+                console.error('Upload Error:', err);
+                req.flash('infoError', 'Image upload failed.');
                 return res.redirect('/submit-recipe');
-            }
-        });
+            })
+            .on('finish', async () => {
+                const ingredients = Array.isArray(req.body.ingredients)
+                    ? req.body.ingredients
+                    : [req.body.ingredients];
 
-        // Create a new recipe object
-        const ingredients = req.body.ingredients; 
-        const newRecipe = new Recipe({
-            name: req.body.name,
-            description: req.body.description,
-            email: req.user.email,
-            ingredients: ingredients,
-            category: req.body.category,
-            image: newImageName
-        });
+                const newRecipe = new Recipe({
+                    name: req.body.name,
+                    description: req.body.description,
+                    email: req.user.email,
+                    ingredients,
+                    category: req.body.category,
+                    image: filename
+                });
 
-        await newRecipe.save(); // Save the recipe          
+                await newRecipe.save();
+                req.flash('infoSubmit', 'Recipe submitted successfully!');
+                res.redirect(`/recipe/${newRecipe._id}`);
+            });
 
-        // Set success message and redirect to submit recipe page
-        req.flash('infoSubmit', 'Recipe has been submitted successfully!');
-        res.redirect(`/recipe/${newRecipe._id}`);
     } catch (error) {
-        // Flash error message and redirect
+        console.error('Submit Error:', error);
+        req.flash('infoError', 'An error occurred while submitting the recipe.');
+        res.redirect('/submit-recipe');
+    }
+};exports.submitRecipeOnPost = async (req, res) => {
+    try {
+        if (!req.files || !req.files.image) {
+            req.flash('infoError', 'Please upload an image.');
+            return res.redirect('/submit-recipe');
+        }
+
+        const image = req.files.image;
+        const filename = Date.now() + '-' + image.name;
+
+        const readStream = Readable.from(image.data);
+        const uploadStream = getGridFSBucket().openUploadStream(filename, {
+            contentType: image.mimetype
+        });
+
+        readStream.pipe(uploadStream)
+            .on('error', (err) => {
+                console.error('Upload Error:', err);
+                req.flash('infoError', 'Image upload failed.');
+                return res.redirect('/submit-recipe');
+            })
+            .on('finish', async () => {
+                const ingredients = Array.isArray(req.body.ingredients)
+                    ? req.body.ingredients
+                    : [req.body.ingredients];
+
+                const newRecipe = new Recipe({
+                    name: req.body.name,
+                    description: req.body.description,
+                    email: req.user.email,
+                    ingredients,
+                    category: req.body.category,
+                    image: filename
+                });
+
+                await newRecipe.save();
+                req.flash('infoSubmit', 'Recipe submitted successfully!');
+                res.redirect(`/recipe/${newRecipe._id}`);
+            });
+
+    } catch (error) {
+        console.error('Submit Error:', error);
         req.flash('infoError', 'An error occurred while submitting the recipe.');
         res.redirect('/submit-recipe');
     }
 };
+
+
 
 // Route to delete a recipe (GET)
 exports.deleteRecipe = async (req, res) => {
@@ -247,46 +302,61 @@ exports.updateRecipe = async (req, res) => {
         const recipeId = req.params.id;
         const recipe = await Recipe.findById(recipeId);
 
-        if (recipe && (recipe.email === req.user.email || req.user.role === 'admin')) {
-            console.log("Ingredients received:", req.body.ingredients);
-            let ingredients = req.body.ingredients || [];
-            if (!Array.isArray(ingredients)) {
-                ingredients = [ingredients];
-            }
-
-            ingredients = ingredients.filter(ingredient => ingredient.trim() !== '');
-            if (ingredients.length === 0) {
-                ingredients = recipe.ingredients;
-            }
-            recipe.name = req.body.name;
-            recipe.description = req.body.description;
-            recipe.ingredients = req.body.ingredients || recipe.ingredients;  // Ingredients as an array
-            recipe.category = req.body.category;
-
-            // Handle image upload
-            if (req.files && req.files.image) {
-                let imageUploadFile = req.files.image;
-                let newImageName = Date.now() + '-' + imageUploadFile.name;
-                let uploadPath = require('path').resolve('./') + '/public/uploads/' + newImageName;
-                imageUploadFile.mv(uploadPath, function(err) {
-                    if (err) return res.status(500).send(err);
-                });
-                recipe.image = newImageName;
-            }
-
-            await recipe.save();
-            req.flash('infoSubmit', 'Recipe has been updated successfully!');
-            res.redirect(`/recipe/${recipe._id}`);
-        } else {
+        if (!recipe || (recipe.email !== req.user.email && req.user.role !== 'admin')) {
             req.flash('infoError', 'You are not authorized to update this recipe.');
-            res.redirect('/my-recipes');
+            return res.redirect('/my-recipes');
         }
+
+        let ingredients = req.body.ingredients || [];
+        if (!Array.isArray(ingredients)) {
+            ingredients = [ingredients];
+        }
+
+        ingredients = ingredients.filter(ing => ing.trim() !== '');
+        if (ingredients.length === 0) {
+            ingredients = recipe.ingredients;
+        }
+
+        recipe.name = req.body.name;
+        recipe.description = req.body.description;
+        recipe.ingredients = ingredients;
+        recipe.category = req.body.category;
+
+        if (req.files && req.files.image) {
+            const image = req.files.image;
+            const filename = Date.now() + '-' + image.name;
+
+            const readStream = Readable.from(image.data);
+            const uploadStream = getGridFSBucket().openUploadStream(filename, {
+                contentType: image.mimetype
+            });
+
+            readStream.pipe(uploadStream)
+                .on('error', (err) => {
+                    console.error('Upload Error:', err);
+                    req.flash('infoError', 'Image upload failed.');
+                    return res.redirect('/my-recipes');
+                })
+                .on('finish', async () => {
+                    recipe.image = filename;
+                    await recipe.save();
+                    req.flash('infoSubmit', 'Recipe updated successfully!');
+                    res.redirect(`/recipe/${recipe._id}`);
+                });
+
+        } else {
+            await recipe.save();
+            req.flash('infoSubmit', 'Recipe updated successfully!');
+            res.redirect(`/recipe/${recipe._id}`);
+        }
+
     } catch (error) {
-        console.log('Error updating recipe:', error);
+        console.error('Update Error:', error);
         req.flash('infoError', 'An error occurred while updating the recipe.');
         res.redirect('/my-recipes');
     }
 };
+
 
 exports.getAllRecipes = async (page = 1, limit = 15) => {
     try {

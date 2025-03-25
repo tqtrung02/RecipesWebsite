@@ -92,4 +92,24 @@ router.get('/reset-password/:token', userController.resetPassword);
 // Route to handle the password update
 router.post('/reset-password/:token', userController.updatePassword);
 
+const { getGFS, getGridFSBucket } = require('../models/database');
+
+router.get('/image/:filename', async (req, res) => {
+    try {
+        const gfs = getGFS();
+        const file = await gfs.files.findOne({ filename: req.params.filename });
+
+        if (!file || !file.contentType.startsWith('image')) {
+            return res.status(404).send('Image not found');
+        }
+
+        const readStream = getGridFSBucket().openDownloadStreamByName(file.filename);
+        readStream.pipe(res);
+    } catch (err) {
+        console.error('Image Load Error:', err);
+        res.status(500).send('Error loading image');
+    }
+});
+
+
 module.exports = router;
