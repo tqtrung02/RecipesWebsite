@@ -70,7 +70,11 @@
                                             <input type="text" name="name" class="form-control" value="<%= user.name %>" required />
                                         </td>
                                         <td>
-                                            <input type="email" name="email" class="form-control" value="<%= user.email %>" required />
+                                            <% if (user.googleId) { %>
+                                                <input type="email" class="form-control" value="<%= user.email %>" readonly />
+                                            <% } else { %>
+                                                <input type="email" name="email" class="form-control" value="<%= user.email %>" required />
+                                            <% } %>
                                         </td>
                                         <td>
                                             <select name="role" class="form-select" required>

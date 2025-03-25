@@ -142,7 +142,20 @@ exports.updateUser = async (req, res) => {
     const { name, email, role } = req.body;
 
     try {
-        await User.findByIdAndUpdate(id, { name, email, role }, { new: true });
+        const user = await User.findById(id);
+
+        if (!user) {
+            req.flash('infoError', 'User not found.');
+            return res.redirect('/admin/dashboard');
+        }
+
+        // Nếu là user Google, không cho phép cập nhật email
+        if (user.googleId) {
+            await User.findByIdAndUpdate(id, { name, role }, { new: true });
+        } else {
+            await User.findByIdAndUpdate(id, { name, email, role }, { new: true });
+        }
+
         req.flash('infoSubmit', 'User updated successfully!');
         res.redirect('/admin/dashboard');
     } catch (error) {
