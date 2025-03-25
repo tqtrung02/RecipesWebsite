@@ -114,13 +114,13 @@ a { color: var(--bs-dark); }
     padding: 15px;
 }
 
-/* Success Alert */
+
 .alert-success {
     background-color: #d4edda;
     color: #155724;
 }
 
-/* Error Alert */
+
 .alert-danger {
     background-color: #f8d7da;
     color: #721c24;
@@ -135,48 +135,50 @@ a { color: var(--bs-dark); }
 }
 
 .text-center a {
-    text-decoration: none; /* Remove underline from links */
+    text-decoration: none;
 }
 
 .nav-link {
-    color: #5c636a; /* Default text color */
+    color: #5c636a;
+    transition: all 0.2s ease-in-out;
 }
 
 .nav-link:hover {
-    color: #007bff; /* Hover effect - Light blue color */
+    color: #007bff;
+    opacity: 0.85;
+    transform: scale(1.05);
 }
 
 .nav-link.active {
-    color: #ff6f61; /* Active link color - orange/red */
+    color: #ff6f61;
 }
 
 .navbar-nav .nav-item {
-    margin-left: 10px;  /* Space between links */
+    margin-left: 10px;
 }
 
-/* Styling for the special "Làm tôi bất ngờ đi!" button */
 .btn-random {
-    background: linear-gradient(135deg, #ff7a18, #af2f2f); /* Gradient background from light orange to red */
-    color: white; /* White text color */
+    background: linear-gradient(135deg, #ff7a18, #af2f2f);
+    color: white; 
     border: none;
-    border-radius: 30px; /* Round edges for a modern look */
+    border-radius: 30px;
     font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    transition: all 0.3s ease-in-out; /* Smooth transition for hover effect */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
 }
 
 .btn-random:hover {
-    background: linear-gradient(135deg, #ff7a18, #e42c2c); /* Darker gradient on hover */
-    transform: scale(1.05); /* Slightly increase the button size */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); /* Increased shadow on hover */
-    cursor: pointer; /* Show pointer cursor on hover */
+    background: linear-gradient(135deg, #ff7a18, #e42c2c);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
 }
 
 .btn-random:active {
-    transform: scale(1); /* Reset the size on click */
-    box-shadow: none; /* Remove the shadow on click */
+    transform: scale(1);
+    box-shadow: none;
 }
 
 .btn-outline-warning:hover {

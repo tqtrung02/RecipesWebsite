@@ -25,30 +25,52 @@
     
             <div class="col-md-6 text-center">
                 <% if (user) { %>
-                    <h1 class="fw-bold text-success">Chào mừng, <span class="text-primary"><%= user.name %></span>!</h1>
+                  <div class="p-2 rounded-4 bg-light d-inline-block animate__animated animate__fadeInDown">
+                    <h2 class="mb-0 fw-bold text-success fs-4">
+                        Xin chào,
+                      <span class="text-primary">
+                        <%= user.name %>
+                      </span>
+                      <% if (user.role === 'admin') { %>
+                        <i class="bi bi-shield-lock-fill ms-2" style="color: #dc3545;" title="Admin"></i>
+                      <% } else { %>
+                        <i class="bi bi-person-circle ms-2" style="color: #0d6efd;" title="User"></i>
+                      <% } %>
+                    </h2>
+                  </div>
                 <% } else { %>
-                    <h1 class="fw-bold text-warning">Chào mừng, khách tham quan!</h1>
+                  <div class="p-2 rounded-4 bg-light d-inline-block animate__animated animate__fadeInDown">
+                    <h2 class="mb-0 fw-bold text-warning fs-4">
+                      Xin chào, khách tham quan!
+                      <i class="bi bi-emoji-smile ms-2" style="color: #ffc107;" ></i>
+                    </h2>
+                  </div>
                 <% } %>
             </div>
+              
     
             <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0" style="font-weight: 600;">
-                <li><a href="/" class="nav-link px-2 link-secondary fs-5">Trang chủ</a></li>
-                <li><a href="/submit-recipe" class="nav-link px-2 link-secondary fs-5">Đăng công thức</a></li>
+                <li><a href="/" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-house-door-fill me-1"></i> Trang chủ</a></li>
+                <li><a href="/submit-recipe" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-upload me-1"></i> Đăng công thức</a></li>
+            
                 <% if (!user) { %>
-                    <li><a href="/signup" class="nav-link px-2 link-secondary fs-5">Đăng ký</a></li>
-                    <li><a href="/login" class="nav-link px-2 link-secondary fs-5">Đăng nhập</a></li>
+                    <li><a href="/signup" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-person-plus-fill me-1"></i> Đăng ký</a></li>
+                    <li><a href="/login" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập</a></li>
                 <% } %>
-    
+            
                 <% if (user) { %>
-                    <li><a href="/profile" class="nav-link px-2 link-secondary fs-5">Thông tin người dùng</a></li>
-                    <li><a href="/my-recipes" class="nav-link px-2 link-secondary fs-5">Công thức của tôi</a></li>
-                    <li><a href="/logout" class="nav-link px-2 link-secondary fs-5">Đăng xuất</a></li>
+                    <li><a href="/profile" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-person-circle me-1"></i> Thông tin người dùng</a></li>
+                    <li><a href="/my-recipes" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-journal-text me-1"></i> Công thức của tôi</a></li>
+                    <li><a href="/logout" class="nav-link px-2 link-secondary fs-5"><i class="bi bi-box-arrow-right me-1"></i> Đăng xuất</a></li>
                 <% } %>
             </ul>
     
             <div class="col-md-3 text-end">
                 <form method="POST" action="/search">
-                    <input type="search" name="searchTerm" class="form-control" placeholder="Tìm kiếm..." aria-label="Search">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="search" name="searchTerm" class="form-control" placeholder="Tìm kiếm công thức..." aria-label="Search">
+                    </div>
                 </form>
             </div>
         </header>
