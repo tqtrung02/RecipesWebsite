@@ -8,7 +8,7 @@ const Recipe = require('../models/Recipe');
 const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const { isAuthenticated, isAdmin } = require('../middlewares/auth');
-
+const { chatWithGPT } = require('../controllers/chatController');
 
 router.get('/', recipeController.homepage);
 router.get('/recipe/:id', recipeController.exploreRecipe);
@@ -111,5 +111,6 @@ router.get('/image/:filename', async (req, res) => {
     }
 });
 
+router.post('/chat', chatWithGPT);
 
 module.exports = router;
