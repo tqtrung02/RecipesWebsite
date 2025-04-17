@@ -66,14 +66,18 @@
                 <% } %>
             </ul>
     
-            <div class="col-md-3 text-end">
-                <form method="POST" action="/search">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="search" name="searchTerm" class="form-control" placeholder="Tìm kiếm công thức..." aria-label="Search">
-                    </div>
-                </form>
-            </div>
+            <form method="POST" action="/search">
+              <div class="input-group mb-3">
+                  <input type="search" name="searchTerm" class="form-control form-control-lg" placeholder="Tìm công thức..." aria-label="Search" required>
+                  <select name="searchType" class="form-select form-control-lg" required>
+                      <option value="name" selected>Theo tên</option>
+                      <option value="ingredients">Theo nguyên liệu</option>
+                  </select>
+                  <button class="btn btn-primary btn-lg" type="submit">
+                      <i class="bi bi-search"></i>
+                  </button>
+              </div>
+            </form>
         </header>
 
         <!-- Admin Dashboard Button Below the Menu -->

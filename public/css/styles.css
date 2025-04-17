@@ -81,8 +81,27 @@ a { color: var(--bs-dark); }
     color: #333;
 }
 
+.input-group {
+    max-width: 600px;
+    margin: 0 auto; /* Center the search form */
+}
+
+.form-control-lg {
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 1.2rem;
+}
+
+.form-select {
+    border-radius: 10px;
+    font-size: 1rem;
+    max-width: 190px;
+}
+
 .input-group-text {
     background-color: #f8f9fa;  /* Light background for input icons */
+    border-radius: 10px 0 0 10px;
+    border-right: 0;
 }
 
 .btn {

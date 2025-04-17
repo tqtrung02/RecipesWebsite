@@ -103,16 +103,40 @@ exports.exploreRecipe = async(req, res) => {
  * POST / search
  * Search
 */
-exports.searchRecipe = async(req, res) => {
+exports.searchRecipe = async (req, res) => {
+    const searchTerm = req.body.searchTerm.trim();
+    const searchType = req.body.searchType; // This will be either "name" or "ingredients"
+
     try {
-        let searchTerm = req.body.searchTerm;
-        let recipe = await Recipe.find( { $text: { $search: searchTerm, $diacriticSensitive: true } } )
-        res.render('search', { title: 'FoodRecipes - Search', recipe } );
-        
+        let query = {};
+
+        if (searchType === 'name') {
+            // Search by recipe name
+            query.name = { $regex: searchTerm, $options: 'i' };
+        } else if (searchType === 'ingredients') {
+            // Search by ingredient
+            query.ingredients = { $regex: searchTerm, $options: 'i' };
+        }
+
+        const recipes = await Recipe.find(query); // Execute the query based on search type
+
+        if (recipes.length > 0) {
+            res.render('search', { 
+                title: 'Search Results', 
+                recipes: recipes, 
+                searchType: searchType, 
+                searchTerm: searchTerm 
+            });
+        } else {
+            req.flash('infoError', 'No recipes found matching your search.');
+            res.redirect('/explore-latest');
+        }
     } catch (error) {
-        res.status(500).send({message: error.message || "Error Occured" });
+        console.error('Error fetching recipes:', error);
+        req.flash('infoError', 'An error occurred while processing your search.');
+        res.redirect('/explore-latest');
     }
-}
+};
 
 /**
  * GET /exlpore-latest
