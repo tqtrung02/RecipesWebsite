@@ -239,8 +239,14 @@ exports.submitRecipeOnPost = async (req, res) => {
 // Route to delete a recipe (GET)
 exports.deleteRecipe = async (req, res) => {
     try {
+        console.log('Delete route triggered for recipe ID:', req.params.id);
+        
         const recipeId = req.params.id;
         const recipe = await Recipe.findById(recipeId);
+
+        console.log("Recipe Email: ", recipe.email);
+        console.log("User Email: ", req.user.email);
+        console.log("User Role: ", req.user.role);
 
         if (req.user.role === 'admin' || recipe.email === req.user.email) {
             await Recipe.deleteOne({ _id: recipeId });

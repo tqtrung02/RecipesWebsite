@@ -49,7 +49,7 @@ router.post('/change-password', isAuthenticated, userController.changePassword);
 router.get('/my-recipes', isAuthenticated, recipeController.myRecipes);
 
 // Route to delete a recipe (GET)
-router.get('/recipe/delete/:id', isAuthenticated, isAdmin, recipeController.deleteRecipe);
+router.get('/recipe/delete/:id', isAuthenticated, recipeController.deleteRecipe);
 
 // Route to render the edit recipe page
 router.get('/recipe/edit/:id', isAuthenticated, recipeController.editRecipe);
