@@ -67,7 +67,7 @@ exports.chatWithGPT = async (req, res) => {
 
     const recipeContext = matchedRecipes.length > 0
       ? matchedRecipes.map((r) =>
-          `• ${r.name}: ${r.description.substring(0, 100)}...\n👉 [**${r.name}**](localhost:4000/recipe/${r._id})`
+          `• ${r.name}: ${r.description.substring(0, 100)}...\n👉 [**${r.name}**](https://recipeswebsite-o52h.onrender.com//recipe/${r._id})`
         ).join('\n')
       : 'Không có công thức nào phù hợp được tìm thấy trong hệ thống.';
 
@@ -89,7 +89,7 @@ exports.chatWithGPT = async (req, res) => {
 
     const recipeLinks = matchedRecipes.map(r => ({
       name: r.name,
-      link: `localhost:4000/recipe/${r._id}`
+      link: `https://recipeswebsite-o52h.onrender.com//recipe/${r._id}`
     }));
 
     let finalReply = replyMarkdown;
