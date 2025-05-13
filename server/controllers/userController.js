@@ -227,7 +227,7 @@ exports.forgotPassword = async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Password Reset Request',
-            text: `To reset your password, please click the following link: \n\n http://localhost:4000/reset-password/${resetToken}`
+            text: `To reset your password, please click the following link: \n\n https://recipeswebsite-o52h.onrender.com/reset-password/${resetToken}`
         };
 
         await transporter.sendMail(mailOptions);
