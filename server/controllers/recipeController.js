@@ -8,6 +8,12 @@ const { isAuthenticated, isAdmin } = require('../middlewares/auth');
 const multer = require('multer');
 const { Readable, getGridFSBucket, getGFS } = require('../models/database');
 
+// Helper function to get Next.js frontend URL
+const getFrontendUrl = (path = '') => {
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    return `${frontendUrl}${path}`;
+};
+
 
 /**
  * GET /
@@ -29,7 +35,8 @@ exports.homepage = async(req, res) => {
             path: 'favorites',
         }) : null;
 
-        res.render('index', { title: 'FoodRecipes - Homepage', categories, food, user: user, recipes:[] } );
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl('/'));
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }
@@ -44,7 +51,8 @@ exports.exploreCategories = async(req, res) => {
     try {
         const limitNumber = 20;
         const categories = await Category.find({}).limit(limitNumber);
-        res.render('categories', { title: 'FoodRecipes - Categories', categories } );
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl('/categories'));
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }
@@ -67,7 +75,9 @@ exports.exploreCategoriesById = async(req, res) => {
         let recipes = await Recipe.find({ category: categoryId });
         const limitNumber = 20;
         const categoryById = await Recipe.find({ 'category': categoryId }).limit(limitNumber);
-        res.render('categories', { title: 'FoodRecipes - Categories', categoryById, category: category, srecipes: recipes } );
+        // Redirect to Next.js frontend
+        const categoryName = encodeURIComponent(categoryId);
+        res.redirect(getFrontendUrl(`/categories/${categoryName}`));
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }
@@ -83,19 +93,15 @@ exports.exploreRecipe = async(req, res) => {
         const recipe = await Recipe.findById(req.params.id)
             .populate('comments.user', 'name');
         if (recipe) {
-            res.render('recipe', { 
-                title: recipe.name, 
-                recipe: recipe, 
-                user: req.user // Pass the logged-in user to the view
-            });
+            // Redirect to Next.js frontend
+            res.redirect(getFrontendUrl(`/recipe/${recipe._id}`));
         } else {
-            req.flash('infoError', 'Recipe not found.');
-            res.redirect('/explore-latest');
+            res.redirect(getFrontendUrl('/explore-latest'));
         }
     } catch (error) {
         console.log('Error fetching recipe:', error);
         req.flash('infoError', 'An error occurred while fetching the recipe.');
-        res.redirect('/explore-latest');
+            res.redirect(getFrontendUrl('/explore-latest'));
     }
 }
 
@@ -120,21 +126,16 @@ exports.searchRecipe = async (req, res) => {
 
         const recipes = await Recipe.find(query); // Execute the query based on search type
 
-        if (recipes.length > 0) {
-            res.render('search', { 
-                title: 'Search Results', 
-                recipes: recipes, 
-                searchType: searchType, 
-                searchTerm: searchTerm 
-            });
-        } else {
-            req.flash('infoError', 'No recipes found matching your search.');
-            res.redirect('/explore-latest');
-        }
+        // Redirect to Next.js frontend with search params
+        const searchParams = new URLSearchParams({
+            q: searchTerm,
+            type: searchType
+        });
+        res.redirect(getFrontendUrl(`/search?${searchParams.toString()}`));
     } catch (error) {
         console.error('Error fetching recipes:', error);
         req.flash('infoError', 'An error occurred while processing your search.');
-        res.redirect('/explore-latest');
+            res.redirect(getFrontendUrl('/explore-latest'));
     }
 };
 
@@ -146,7 +147,8 @@ exports.exploreLatest = async(req, res) => {
     try {
         const limitNumber = 20;
         const recipe = await Recipe.find({}).sort({_id: -1 }).limit(limitNumber);
-        res.render('explore-latest', { title: 'FoodRecipes - Explore Latest', recipe } );
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl('/explore-latest'));
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }  
@@ -161,7 +163,8 @@ exports.exploreRandom = async(req, res) => {
         let count = await Recipe.find().countDocuments();
         let random = Math.floor(Math.random() * count);
         let recipe = await Recipe.findOne().skip(random).exec();
-        res.render('explore-random', { title: 'FoodRecipes - Explore Random', recipe } );
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl('/explore-random'));
     } catch (error) {
         res.status(500).send({message: error.message || "Error Occured" });
     }  
@@ -175,11 +178,10 @@ exports.submitRecipe = async(req, res) => {
     const infoErrorObj = req.flash('infoErrors');
     const infoSubmitObj = req.flash('infoSubmit');
     if (!req.user) {  // Check if the user is not logged in
-        req.flash('infoError', 'You need to log in to submit a recipe.');
-        return res.redirect('/login');  // Redirect to login page if not logged in
+        return res.redirect(getFrontendUrl('/login'));  // Redirect to login page if not logged in
     }
-    const categories = await Category.find({});
-    res.render('submit-recipe', { title: 'FoodRecipes - Submit Recipe', infoErrorObj, infoSubmitObj, categories: categories } );
+    // Redirect to Next.js frontend
+    res.redirect(getFrontendUrl('/submit-recipe'));
 }
 
 /**
@@ -191,7 +193,7 @@ exports.submitRecipeOnPost = async (req, res) => {
     try {
         if (!req.files || !req.files.image) {
             req.flash('infoError', 'Please upload an image.');
-            return res.redirect('/submit-recipe');
+            return res.redirect(getFrontendUrl('/submit-recipe'));
         }
 
         const image = req.files.image;
@@ -206,7 +208,7 @@ exports.submitRecipeOnPost = async (req, res) => {
             .on('error', (err) => {
                 console.error('Upload Error:', err);
                 req.flash('infoError', 'Image upload failed.');
-                return res.redirect('/submit-recipe');
+                return res.redirect(getFrontendUrl('/submit-recipe'));
             })
             .on('finish', async () => {
                 const ingredients = Array.isArray(req.body.ingredients)
@@ -224,13 +226,13 @@ exports.submitRecipeOnPost = async (req, res) => {
 
                 await newRecipe.save();
                 req.flash('infoSubmit', 'Recipe submitted successfully!');
-                res.redirect(`/recipe/${newRecipe._id}`);
+                res.redirect(getFrontendUrl(`/recipe/${newRecipe._id}`));
             });
 
     } catch (error) {
         console.error('Submit Error:', error);
         req.flash('infoError', 'An error occurred while submitting the recipe.');
-        res.redirect('/submit-recipe');
+        res.redirect(getFrontendUrl('/submit-recipe'));
     }
 };
 
@@ -251,15 +253,15 @@ exports.deleteRecipe = async (req, res) => {
         if (req.user.role === 'admin' || recipe.email === req.user.email) {
             await Recipe.deleteOne({ _id: recipeId });
             req.flash('infoSubmit', 'Recipe has been deleted successfully!');
-            res.redirect('/my-recipes');
+            res.redirect(getFrontendUrl('/my-recipes'));
         } else {
             req.flash('infoError', 'You are not authorized to delete this recipe.');
-            res.redirect('/my-recipes');
+            res.redirect(getFrontendUrl('/my-recipes'));
         }
     } catch (error) {
         console.log('Error deleting recipe:', error);
         req.flash('infoError', 'An error occurred while deleting the recipe.');
-        res.redirect('/my-recipes');
+        res.redirect(getFrontendUrl('/my-recipes'));
     }
 };
 
@@ -270,13 +272,14 @@ exports.editRecipe = async (req, res) => {
         const categories = await Category.find({});
         if (req.user.role !== 'admin' && recipe.email !== req.user.email) {
             req.flash('infoError', 'You are not authorized to edit this recipe.');
-            return res.redirect('/my-recipes');
+            return res.redirect(getFrontendUrl('/my-recipes'));
         }
 
-        res.render('edit-recipe', { title: 'Edit Recipe', recipe ,categories });
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl(`/recipe/edit/${recipe._id}`));
     } catch (error) {
         req.flash('infoError', 'An error occurred while fetching the recipe.');
-        res.redirect('/my-recipes');
+        res.redirect(getFrontendUrl('/my-recipes'));
     }
 };
 
@@ -288,7 +291,7 @@ exports.updateRecipe = async (req, res) => {
 
         if (!recipe || (recipe.email !== req.user.email && req.user.role !== 'admin')) {
             req.flash('infoError', 'You are not authorized to update this recipe.');
-            return res.redirect('/my-recipes');
+            return res.redirect(getFrontendUrl('/my-recipes'));
         }
 
         let ingredients = req.body.ingredients || [];
@@ -319,13 +322,13 @@ exports.updateRecipe = async (req, res) => {
                 .on('error', (err) => {
                     console.error('Upload Error:', err);
                     req.flash('infoError', 'Image upload failed.');
-                    return res.redirect('/my-recipes');
+                    return res.redirect(getFrontendUrl('/my-recipes'));
                 })
                 .on('finish', async () => {
                     recipe.image = filename;
                     await recipe.save();
                     req.flash('infoSubmit', 'Recipe updated successfully!');
-                    res.redirect(`/recipe/${recipe._id}`);
+                    res.redirect(getFrontendUrl(`/recipe/${recipe._id}`));
                 });
 
         } else {
@@ -337,7 +340,7 @@ exports.updateRecipe = async (req, res) => {
     } catch (error) {
         console.error('Update Error:', error);
         req.flash('infoError', 'An error occurred while updating the recipe.');
-        res.redirect('/my-recipes');
+        res.redirect(getFrontendUrl('/my-recipes'));
     }
 };
 
@@ -372,7 +375,7 @@ exports.addFavorite = async (req, res) => {
         const user = await User.findById(userId);
         if (user.favorites.includes(recipeId)) {
             req.flash('infoError', 'Recipe already added to favorites.');
-            return res.redirect(`/recipe/${recipeId}`);
+            return res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
         }
 
         // Add the recipe to the favorites array
@@ -380,10 +383,10 @@ exports.addFavorite = async (req, res) => {
         await user.save();
 
         req.flash('infoSubmit', 'Recipe added to favorites.');
-        res.redirect(`/recipe/${recipeId}`);
+            res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
     } catch (error) {
         req.flash('infoError', 'An error occurred while adding to favorites.');
-        res.redirect(`/recipe/${recipeId}`);
+            res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
     }
 };
 
@@ -399,10 +402,10 @@ exports.removeFavorite = async (req, res) => {
         await user.save();
 
         req.flash('infoSubmit', 'Recipe removed from favorites.');
-        res.redirect(`/recipe/${recipeId}`);
+            res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
     } catch (error) {
         req.flash('infoError', 'An error occurred while removing from favorites.');
-        res.redirect(`/recipe/${recipeId}`);
+            res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
     }
 };
 
@@ -416,15 +419,12 @@ exports.getFavoriteRecipes = async (req, res) => {
         
         const favorites = user.favorites;
 
-        res.render('favorite-recipes', {
-            title: 'Favorite Recipes',
-            recipes: favorites,
-            user: req.user
-        });
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl('/favorites'));
     } catch (error) {
         console.error('Error fetching favorite recipes:', error);
         req.flash('infoError', 'An error occurred while fetching your favorite recipes.');
-        res.redirect('/'); // Redirect to the home page in case of error
+        res.redirect(getFrontendUrl('/')); // Redirect to the home page in case of error
     }
 };
 
@@ -438,7 +438,7 @@ exports.addComment = async (req, res) => {
 
         if (!recipe) {
             req.flash('infoError', 'Recipe not found.');
-            return res.redirect(`/recipe/${recipeId}`);
+            return res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
         }
 
         // Add the new comment
@@ -451,11 +451,11 @@ exports.addComment = async (req, res) => {
         await recipe.save();
 
         req.flash('infoSubmit', 'Comment added successfully!');
-        res.redirect(`/recipe/${recipeId}`); // Redirect back to the recipe detail page
+            res.redirect(getFrontendUrl(`/recipe/${recipeId}`)); // Redirect back to the recipe detail page
     } catch (error) {
         console.error('Error adding comment:', error);
         req.flash('infoError', 'An error occurred while adding your comment.');
-        res.redirect(`/recipe/${req.params.id}`);
+        res.redirect(getFrontendUrl(`/recipe/${req.params.id}`));
     }
 };
 
@@ -468,14 +468,14 @@ exports.deleteComment = async (req, res) => {
         const recipe = await Recipe.findById(recipeId);
         if (!recipe) {
             req.flash('infoError', 'Recipe not found.');
-            return res.redirect(`/recipe/${recipeId}`);
+            return res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
         }
 
         // Remove the comment with the specified commentId
         const commentIndex = recipe.comments.findIndex(comment => comment._id.toString() === commentId);
         if (commentIndex === -1) {
             req.flash('infoError', 'Comment not found.');
-            return res.redirect(`/recipe/${recipeId}`);
+            return res.redirect(getFrontendUrl(`/recipe/${recipeId}`));
         }
 
         // Remove the comment from the comments array
@@ -483,7 +483,7 @@ exports.deleteComment = async (req, res) => {
         await recipe.save();
 
         req.flash('infoSubmit', 'Bình luận đã được xóa thành công!');
-        res.redirect(`/recipe/${recipeId}`); // Redirect back to the recipe detail page
+            res.redirect(getFrontendUrl(`/recipe/${recipeId}`)); // Redirect back to the recipe detail page
     } catch (error) {
         console.error('Error deleting comment:', error);
         req.flash('infoError', 'Có lỗi xảy ra khi xóa bình luận.');
@@ -496,10 +496,11 @@ exports.myRecipes = async (req, res) => {
     try {
         const userEmail = req.user.email; // Get the email of the logged-in user
         const userRecipes = await Recipe.find({ email: userEmail }); // Find recipes by the user's email
-        res.render('my-recipes', { title: 'My Recipes', recipes: userRecipes });
+        // Redirect to Next.js frontend
+        res.redirect(getFrontendUrl('/my-recipes'));
     } catch (error) {
         console.error('Error fetching recipes:', error);
         req.flash('infoError', 'An error occurred while fetching your recipes.');
-        res.redirect('/profile');
+        res.redirect(getFrontendUrl('/profile'));
     }
 };

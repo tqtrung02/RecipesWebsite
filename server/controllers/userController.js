@@ -6,10 +6,16 @@ const passport = require('passport');
 const recipeController = require('./recipeController');
 const userController = require('../controllers/userController');
 
+// Helper function to get Next.js frontend URL
+const getFrontendUrl = (path = '') => {
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    return `${frontendUrl}${path}`;
+};
 
-// Render the signup page
+
+// Redirect to Next.js signup page
 exports.signupPage = (req, res) => {
-    res.render('signup', { title: 'Sign Up' });
+    res.redirect(getFrontendUrl('/signup'));
 };
 
 // Handle user signup
@@ -19,41 +25,41 @@ exports.signupUser = async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             req.flash('infoError', 'Email already used.');
-            return res.redirect('/signup');
+            return res.redirect(getFrontendUrl('/signup'));
         }
         const newUser = new User({ name, email, password });
         await newUser.save();
         req.login(newUser, (err) => {
             if (err) return next(err);
-            res.redirect('/');
+            res.redirect(getFrontendUrl('/'));
         });
     } catch (error) {
         req.flash('infoError', 'An error occurred while signing up.');
-        res.redirect('/signup');
+        res.redirect(getFrontendUrl('/signup'));
     }
 };
 
-// Render the login page
+// Redirect to Next.js login page
 exports.loginPage = (req, res) => {
-    res.render('login', { title: 'Login' });
+    res.redirect(getFrontendUrl('/login'));
 };
 
 // Handle user logout
 exports.logout = (req, res) => {
     req.logout((err) => {
         if (err) return next(err);
-        res.redirect('/');
+        res.redirect(getFrontendUrl('/'));
     });
 };
 
-// Render the user profile page
+// Redirect to Next.js profile page
 exports.profilePage = (req, res) => {
-    res.render('profile', { title: 'User Profile', user: req.user });
+    res.redirect(getFrontendUrl('/profile'));
 };
 
-// Render the edit profile page
+// Redirect to Next.js edit profile page
 exports.editProfilePage = (req, res) => {
-    res.render('edit-profile', { title: 'Edit Profile', user: req.user });
+    res.redirect(getFrontendUrl('/edit-profile'));
 };
 
 // Handle profile update
@@ -62,16 +68,16 @@ exports.updateProfile = async (req, res) => {
     try {
         await User.findByIdAndUpdate(req.user._id, { name, email });
         req.flash('infoSubmit', 'Profile updated successfully.');
-        res.redirect('/profile');
+        res.redirect(getFrontendUrl('/profile'));
     } catch (error) {
         req.flash('infoError', 'Error updating profile.');
-        res.redirect('/edit-profile');
+        res.redirect(getFrontendUrl('/edit-profile'));
     }
 };
 
-// Render the change password page
+// Redirect to Next.js change password page
 exports.changePasswordPage = (req, res) => {
-    res.render('change-password', { title: 'Change Password', user: req.user });
+    res.redirect(getFrontendUrl('/change-password'));
 };
 
 // Handle password change
@@ -80,7 +86,7 @@ exports.changePassword = async (req, res) => {
 
     if (newPassword !== confirmPassword) {
         req.flash('infoError', 'New passwords do not match.');
-        return res.redirect('/change-password');
+        return res.redirect(getFrontendUrl('/change-password'));
     }
 
     try {
@@ -88,15 +94,15 @@ exports.changePassword = async (req, res) => {
         const isMatch = await user.comparePassword(currentPassword);
         if (!isMatch) {
             req.flash('infoError', 'Incorrect current password.');
-            return res.redirect('/change-password');
+            return res.redirect(getFrontendUrl('/change-password'));
         }
         user.password = newPassword;
         await user.save();
         req.flash('infoSubmit', 'Password updated successfully.');
-        res.redirect('/profile');
+        res.redirect(getFrontendUrl('/profile'));
     } catch (error) {
         req.flash('infoError', 'Error changing password.');
-        res.redirect('/change-password');
+        res.redirect(getFrontendUrl('/change-password'));
     }
 };
 
@@ -122,17 +128,13 @@ exports.adminDashboard = async (req, res) => {
         // Ensure getAllUsers is properly called
         const users = await userController.getAllUsers();  // Fetch users from the database
 
-        res.render('admin-dashboard', {  // Render the dashboard with the fetched data
-            user: req.user,
-            recipes: recipes,
-            totalPages: totalPages,
-            currentPage: currentPage,
-            users: users  // Ensure users are passed to the view
-        });
+        // Redirect to Next.js admin dashboard
+        const pageParam = page > 1 ? `?page=${page}` : '';
+        res.redirect(getFrontendUrl(`/admin/dashboard${pageParam}`));
     } catch (error) {
         console.error('Error fetching data for admin dashboard:', error);  // Log error
         req.flash('infoError', 'Error fetching data for admin dashboard.');
-        res.redirect('/');
+        res.redirect(getFrontendUrl('/'));
     }
 };
 
@@ -146,7 +148,7 @@ exports.updateUser = async (req, res) => {
 
         if (!user) {
             req.flash('infoError', 'User not found.');
-            return res.redirect('/admin/dashboard');
+            return res.redirect(getFrontendUrl('/admin/dashboard'));
         }
 
         // Nếu là user Google, không cho phép cập nhật email
@@ -157,10 +159,10 @@ exports.updateUser = async (req, res) => {
         }
 
         req.flash('infoSubmit', 'User updated successfully!');
-        res.redirect('/admin/dashboard');
+        res.redirect(getFrontendUrl('/admin/dashboard'));
     } catch (error) {
         req.flash('infoError', 'Error updating user.');
-        res.redirect('/admin/dashboard');
+        res.redirect(getFrontendUrl('/admin/dashboard'));
     }
 };
 
@@ -171,10 +173,10 @@ exports.deleteUser = async (req, res) => {
     try {
         await User.findByIdAndDelete(id);
         req.flash('infoSubmit', 'User deleted successfully!');
-        res.redirect('/admin/dashboard');
+        res.redirect(getFrontendUrl('/admin/dashboard'));
     } catch (error) {
         req.flash('infoError', 'Error deleting user.');
-        res.redirect('/admin/dashboard');
+        res.redirect(getFrontendUrl('/admin/dashboard'));
     }
 };
 
@@ -185,13 +187,13 @@ exports.googleLogin = passport.authenticate('google', {
 
 // Google callback route after the user logs in
 exports.googleCallback = passport.authenticate('google', {
-    failureRedirect: '/login',  // Redirect to login page on failure
-    successRedirect: '/'  // Redirect to homepage or dashboard after successful login
+    failureRedirect: getFrontendUrl('/login'),  // Redirect to login page on failure
+    successRedirect: getFrontendUrl('/')  // Redirect to homepage or dashboard after successful login
 });
 
-// Function to render the Forgot Password page
+// Redirect to Next.js forgot password page
 exports.renderForgotPasswordPage = (req, res) => {
-    res.render('forgot-password');  // Render the forgot-password.ejs file
+    res.redirect(getFrontendUrl('/forgot-password'));
 };
 
 // Forgot password: Send reset link to user's email
@@ -203,7 +205,7 @@ exports.forgotPassword = async (req, res) => {
 
         if (!user) {
             req.flash('infoError', 'No user found with that email address.');
-            return res.redirect('/forgot-password');
+            return res.redirect(getFrontendUrl('/forgot-password'));
         }
 
         // Generate password reset token
@@ -232,11 +234,11 @@ exports.forgotPassword = async (req, res) => {
 
         await transporter.sendMail(mailOptions);
         req.flash('infoSubmit', 'Password reset email sent.');
-        res.redirect('/login');
+        res.redirect(getFrontendUrl('/login'));
     } catch (error) {
         console.log(error);
         req.flash('infoError', 'An error occurred while processing your request.');
-        res.redirect('/forgot-password');
+        res.redirect(getFrontendUrl('/forgot-password'));
     }
 };
 
@@ -248,14 +250,15 @@ exports.resetPassword = async (req, res) => {
 
         if (!user) {
             req.flash('infoError', 'Invalid or expired token.');
-            return res.redirect('/login');
+            return res.redirect(getFrontendUrl('/login'));
         }
 
-        res.render('reset-password', { title: 'Reset Password', token });
+        // Redirect to Next.js reset password page
+        res.redirect(getFrontendUrl(`/reset-password/${token}`));
     } catch (error) {
         console.log(error);
         req.flash('infoError', 'An error occurred while fetching the user.');
-        res.redirect('/login');
+        res.redirect(getFrontendUrl('/login'));
     }
 };
 
@@ -269,7 +272,7 @@ exports.updatePassword = async (req, res) => {
 
         if (!user) {
             req.flash('infoError', 'Invalid or expired token.');
-            return res.redirect('/login');
+            return res.redirect(getFrontendUrl('/login'));
         }
 
         user.password = password;
@@ -278,10 +281,10 @@ exports.updatePassword = async (req, res) => {
         await user.save();
 
         req.flash('infoSubmit', 'Your password has been updated successfully!');
-        res.redirect('/login');
+        res.redirect(getFrontendUrl('/login'));
     } catch (error) {
         console.log(error);
         req.flash('infoError', 'An error occurred while updating your password.');
-        res.redirect('/login');
+        res.redirect(getFrontendUrl('/login'));
     }
 };

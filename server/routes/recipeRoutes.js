@@ -24,11 +24,38 @@ router.get('/signup', userController.signupPage);
 router.post('/signup', userController.signupUser);
 
 router.get('/login', userController.loginPage);
-router.post('/login', passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login',
-    failureFlash: true
-}));
+const getFrontendUrl = (path = '') => {
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    return `${frontendUrl}${path}`;
+};
+
+// Custom login handler to return JSON instead of redirect
+router.post('/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+        if (err) {
+            return res.status(500).json({ error: 'Internal server error' });
+        }
+        if (!user) {
+            return res.status(401).json({ error: info?.message || 'Invalid credentials' });
+        }
+        req.login(user, (loginErr) => {
+            if (loginErr) {
+                return res.status(500).json({ error: 'Login failed' });
+            }
+            // Return success with user data
+            return res.status(200).json({ 
+                success: true, 
+                message: 'Login successful',
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role
+                }
+            });
+        });
+    })(req, res, next);
+});
 
 // Route to initiate Google login
 router.get('/auth/google', userController.googleLogin);

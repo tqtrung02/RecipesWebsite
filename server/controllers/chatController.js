@@ -65,9 +65,12 @@ exports.chatWithGPT = async (req, res) => {
       return keywordList.some(word => fullText.includes(word));
     });
 
+    // Get frontend URL from environment or use default
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
+    
     const recipeContext = matchedRecipes.length > 0
       ? matchedRecipes.map((r) =>
-          `• ${r.name}: ${r.description.substring(0, 100)}...\n👉 [**${r.name}**](https://recipeswebsite-o52h.onrender.com/recipe/${r._id})`
+          `• ${r.name}: ${r.description.substring(0, 100)}...\n👉 [**${r.name}**](${frontendUrl}/recipe/${r._id})`
         ).join('\n')
       : 'Không có công thức nào phù hợp được tìm thấy trong hệ thống.';
 
@@ -89,7 +92,7 @@ exports.chatWithGPT = async (req, res) => {
 
     const recipeLinks = matchedRecipes.map(r => ({
       name: r.name,
-      link: `https://recipeswebsite-o52h.onrender.com/recipe/${r._id}`
+      link: `${frontendUrl}/recipe/${r._id}`
     }));
 
     let finalReply = replyMarkdown;
